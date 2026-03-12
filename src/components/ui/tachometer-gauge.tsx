@@ -1,13 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Transition } from 'react-d3-speedometer'
 import { cn } from '@/lib/utils'
+
+// Dynamic import for SSR compatibility
+const ReactSpeedometer = dynamic(() => import('react-d3-speedometer'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center">
+      <div className="animate-pulse bg-[#2a2a2a] rounded-full w-32 h-16" />
+    </div>
+  )
+})
 
 interface TachometerGaugeProps {
   percentage: number
   size?: 'sm' | 'md' | 'lg'
   label?: string
-  showPercentage?: boolean
   className?: string
 }
 
@@ -15,204 +25,51 @@ export function TachometerGauge({
   percentage,
   size = 'md',
   label,
-  showPercentage = true,
   className
 }: TachometerGaugeProps) {
-  const [animatedPercentage, setAnimatedPercentage] = useState(0)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimatedPercentage(Math.min(100, Math.max(0, percentage)))
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [percentage])
-
   // Size configurations
   const sizes = {
-    sm: { width: 120, strokeWidth: 12, fontSize: 16, labelSize: 10 },
-    md: { width: 160, strokeWidth: 16, fontSize: 24, labelSize: 12 },
-    lg: { width: 200, strokeWidth: 20, fontSize: 32, labelSize: 14 }
+    sm: { width: 140, height: 90, ringWidth: 15, labelSize: 10 },
+    md: { width: 200, height: 130, ringWidth: 20, labelSize: 12 },
+    lg: { width: 260, height: 170, ringWidth: 25, labelSize: 14 }
   }
 
   const config = sizes[size]
-  const radius = (config.width - config.strokeWidth) / 2
-  const centerX = config.width / 2
-  const centerY = config.width / 2
-
-  // Arc calculation (180 degrees - half circle)
-  const startAngle = 180
-  const endAngle = 0
-  const angleRange = 180
-
-  // Calculate arc path
-  const polarToCartesian = (cx: number, cy: number, r: number, angle: number) => {
-    const angleRad = ((angle - 90) * Math.PI) / 180
-    return {
-      x: cx + r * Math.cos(angleRad),
-      y: cy + r * Math.sin(angleRad)
-    }
-  }
-
-  const describeArc = (cx: number, cy: number, r: number, startA: number, endA: number) => {
-    const start = polarToCartesian(cx, cy, r, startA)
-    const end = polarToCartesian(cx, cy, r, endA)
-    const largeArcFlag = Math.abs(startA - endA) > 180 ? 1 : 0
-    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`
-  }
-
-  // Progress arc
-  const progressAngle = startAngle - (animatedPercentage / 100) * angleRange
-  const backgroundArc = describeArc(centerX, centerY, radius, startAngle, endAngle)
-  const progressArc = describeArc(centerX, centerY, radius, startAngle, Math.max(progressAngle, endAngle))
-
-  // Needle calculation
-  const needleAngle = startAngle - (animatedPercentage / 100) * angleRange
-  const needleLength = radius - 10
-  const needleEnd = polarToCartesian(centerX, centerY, needleLength, needleAngle)
-
-  // Tick marks
-  const ticks = [0, 25, 50, 75, 100]
+  const value = Math.min(100, Math.max(0, percentage))
 
   return (
-    <div className={cn('relative flex flex-col items-center', className)}>
-      <svg
+    <div className={cn('flex flex-col items-center', className)}>
+      <ReactSpeedometer
+        value={value}
+        minValue={0}
+        maxValue={100}
+        segments={5}
         width={config.width}
-        height={config.width / 2 + 20}
-        viewBox={`0 0 ${config.width} ${config.width / 2 + 20}`}
-        className="overflow-visible"
-      >
-        {/* Glow filter */}
-        <defs>
-          <filter id={`glow-${size}`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <linearGradient id={`goldGradient-${size}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#d4af37" />
-            <stop offset="50%" stopColor="#f0d060" />
-            <stop offset="100%" stopColor="#d4af37" />
-          </linearGradient>
-        </defs>
-
-        {/* Background arc */}
-        <path
-          d={backgroundArc}
-          fill="none"
-          stroke="#2a2a2a"
-          strokeWidth={config.strokeWidth}
-          strokeLinecap="round"
-        />
-
-        {/* Tick marks */}
-        {ticks.map((tick) => {
-          const tickAngle = startAngle - (tick / 100) * angleRange
-          const innerPoint = polarToCartesian(centerX, centerY, radius - config.strokeWidth / 2 - 8, tickAngle)
-          const outerPoint = polarToCartesian(centerX, centerY, radius + config.strokeWidth / 2 + 4, tickAngle)
-          return (
-            <g key={tick}>
-              <line
-                x1={innerPoint.x}
-                y1={innerPoint.y}
-                x2={outerPoint.x}
-                y2={outerPoint.y}
-                stroke="#505050"
-                strokeWidth={2}
-              />
-            </g>
-          )
-        })}
-
-        {/* Progress arc */}
-        <path
-          d={progressArc}
-          fill="none"
-          stroke={`url(#goldGradient-${size})`}
-          strokeWidth={config.strokeWidth}
-          strokeLinecap="round"
-          filter={`url(#glow-${size})`}
-          style={{
-            transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        />
-
-        {/* Center pivot point */}
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r={8}
-          fill="#1c1c1c"
-          stroke="#d4af37"
-          strokeWidth={2}
-        />
-
-        {/* Needle */}
-        <g
-          style={{
-            transform: `rotate(${needleAngle - 90}deg)`,
-            transformOrigin: `${centerX}px ${centerY}px`,
-            transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        >
-          {/* Needle body */}
-          <polygon
-            points={`
-              ${centerX},${centerY - 6}
-              ${centerX + needleLength},${centerY}
-              ${centerX},${centerY + 6}
-            `}
-            fill="url(#goldGradient-${size})"
-            filter={`url(#glow-${size})`}
-          />
-          {/* Needle tip (arrow) */}
-          <polygon
-            points={`
-              ${centerX + needleLength - 5},${centerY - 4}
-              ${centerX + needleLength + 8},${centerY}
-              ${centerX + needleLength - 5},${centerY + 4}
-            `}
-            fill="#f0d060"
-          />
-        </g>
-
-        {/* Center cap */}
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r={5}
-          fill="#d4af37"
-        />
-      </svg>
-
-      {/* Percentage display */}
-      {showPercentage && (
-        <div
-          className="absolute text-center"
-          style={{
-            bottom: size === 'sm' ? '8px' : size === 'md' ? '12px' : '16px'
-          }}
-        >
-          <span
-            className="font-bold text-white"
-            style={{ fontSize: config.fontSize }}
-          >
-            {Math.round(animatedPercentage)}
-          </span>
-          <span
-            className="text-[#d4af37] ml-0.5"
-            style={{ fontSize: config.fontSize * 0.6 }}
-          >
-            %
-          </span>
-        </div>
-      )}
-
-      {/* Label */}
+        height={config.height}
+        ringWidth={config.ringWidth}
+        needleColor="#f0d060"
+        needleHeightRatio={0.7}
+        needleTransitionDuration={1000}
+        needleTransition={Transition.easeElasticOut}
+        currentValueText={`${Math.round(value)}%`}
+        currentValuePlaceholderStyle="#{value}"
+        textColor="#f5f5f5"
+        valueTextFontSize={size === 'lg' ? '22px' : size === 'md' ? '18px' : '14px'}
+        labelFontSize="0px"
+        segmentColors={[
+          '#3a3a3a',
+          '#5a4a2a',
+          '#8a6a2a',
+          '#b8942a',
+          '#d4af37'
+        ]}
+        customSegmentStops={[0, 20, 40, 60, 80, 100]}
+        paddingHorizontal={0}
+        paddingVertical={0}
+      />
       {label && (
         <div
-          className="text-[#a0a0a0] uppercase tracking-wider mt-2 text-center"
+          className="text-[#a0a0a0] uppercase tracking-wider text-center -mt-2"
           style={{ fontSize: config.labelSize }}
         >
           {label}
@@ -222,7 +79,7 @@ export function TachometerGauge({
   )
 }
 
-// Horizontal tachometer bar (alternative style)
+// Horizontal tachometer bar with proper styling
 interface TachometerBarProps {
   percentage: number
   height?: number
@@ -233,88 +90,91 @@ interface TachometerBarProps {
 
 export function TachometerBar({
   percentage,
-  height = 24,
+  height = 32,
   label,
   showValue = true,
   className
 }: TachometerBarProps) {
-  const [animatedPercentage, setAnimatedPercentage] = useState(0)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimatedPercentage(Math.min(100, Math.max(0, percentage)))
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [percentage])
+  const value = Math.min(100, Math.max(0, percentage))
 
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-[#a0a0a0] uppercase tracking-wider">{label}</span>
+        <div className="flex justify-between items-center mb-1.5">
+          <span className="text-xs text-[#a0a0a0] uppercase tracking-wider font-medium">{label}</span>
           {showValue && (
-            <span className="text-sm font-bold text-white">
-              {Math.round(animatedPercentage)}%
+            <span className="text-sm font-bold text-[#d4af37] font-mono">
+              {Math.round(value)}%
             </span>
           )}
         </div>
       )}
 
       <div className="relative" style={{ height }}>
-        {/* Background */}
+        {/* Background track */}
         <div
-          className="absolute inset-0 rounded-full bg-[#1c1c1c] border border-[#2a2a2a]"
-          style={{ height }}
-        />
-
-        {/* Tick marks */}
-        <div className="absolute inset-0 flex justify-between px-2 items-center pointer-events-none">
-          {[0, 25, 50, 75, 100].map((tick) => (
-            <div
-              key={tick}
-              className="w-0.5 bg-[#3a3a3a]"
-              style={{ height: height * 0.6 }}
-            />
-          ))}
+          className="absolute inset-0 rounded-full overflow-hidden"
+          style={{
+            background: 'linear-gradient(to right, #1a1a1a, #2a2a2a)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
+          }}
+        >
+          {/* Tick marks */}
+          <div className="absolute inset-0 flex items-center justify-between px-1">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="w-0.5 h-3 bg-[#404040] rounded-full"
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Progress fill */}
+        {/* Progress fill with gradient */}
         <div
-          className="absolute left-0 top-0 rounded-full overflow-hidden"
+          className="absolute left-0 top-0 bottom-0 rounded-full overflow-hidden transition-all duration-700 ease-out"
           style={{
-            width: `${animatedPercentage}%`,
-            height,
-            transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+            width: `${value}%`,
           }}
         >
           <div
-            className="h-full w-full bg-gradient-to-r from-[#d4af37] via-[#f0d060] to-[#d4af37]"
+            className="h-full w-full"
             style={{
-              boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)'
+              background: 'linear-gradient(90deg, #8a6a2a 0%, #d4af37 50%, #f0d060 100%)',
+              boxShadow: '0 0 15px rgba(212, 175, 55, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
             }}
           />
         </div>
 
-        {/* Needle/Arrow indicator */}
+        {/* Needle indicator */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 z-10"
+          className="absolute top-1/2 -translate-y-1/2 transition-all duration-700 ease-out z-10"
           style={{
-            left: `calc(${animatedPercentage}% - 6px)`,
-            transition: 'left 1s cubic-bezier(0.4, 0, 0.2, 1)'
+            left: `calc(${value}% - 2px)`,
           }}
         >
+          {/* Needle body */}
           <div
             className="relative"
             style={{
               width: 0,
               height: 0,
-              borderTop: `${height / 2 + 4}px solid transparent`,
-              borderBottom: `${height / 2 + 4}px solid transparent`,
-              borderLeft: `${height / 2}px solid #f0d060`,
-              filter: 'drop-shadow(0 0 4px rgba(240, 208, 96, 0.8))'
+              borderTop: `${height / 2 + 6}px solid transparent`,
+              borderBottom: `${height / 2 + 6}px solid transparent`,
+              borderLeft: `12px solid #f0d060`,
+              filter: 'drop-shadow(0 0 6px rgba(240, 208, 96, 0.8))'
             }}
           />
         </div>
+
+        {/* Center glow effect at progress end */}
+        <div
+          className="absolute top-0 bottom-0 w-4 transition-all duration-700 ease-out pointer-events-none"
+          style={{
+            left: `calc(${value}% - 8px)`,
+            background: 'radial-gradient(circle, rgba(240, 208, 96, 0.6) 0%, transparent 70%)'
+          }}
+        />
       </div>
     </div>
   )
