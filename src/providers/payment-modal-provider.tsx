@@ -3,9 +3,11 @@
 import * as React from "react"
 import { createContext, useContext, useCallback, useState, useEffect } from "react"
 import { PaymentModal } from "@/components/modals/PaymentModal"
+import { toast } from "sonner"
 
 const STORAGE_KEY = "axs_payment_modal_dismissed"
 const SESSION_KEY = "axs_payment_modal_shown_this_session"
+const PREMIUM_KEY = "axs_is_premium"
 
 interface PaymentModalContextValue {
   /** Whether the modal is currently open */
@@ -95,10 +97,27 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
     }
   }, [closeModal, openModal])
 
-  const handleStartPremium = useCallback(() => {
-    // Future: redirect to payment flow
-    console.log("Starting premium flow...")
-    closeModal()
+  const handleStartPremium = useCallback(async () => {
+    try {
+      const response = await fetch('/api/user/upgrade', {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        // Store premium status locally
+        if (typeof window !== "undefined") {
+          localStorage.setItem(PREMIUM_KEY, "true")
+        }
+        toast.success('🎉 Welcome to Premium! Enjoy unlimited features.')
+        closeModal()
+        // Refresh to update UI
+        window.location.reload()
+      } else {
+        toast.error('Failed to upgrade. Please try again.')
+      }
+    } catch {
+      toast.error('Network error. Please try again.')
+    }
   }, [closeModal])
 
   const handleMaybeLater = useCallback(() => {
