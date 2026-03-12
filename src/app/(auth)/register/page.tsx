@@ -8,44 +8,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Mail, Lock, Eye, EyeOff, User, Check, X } from 'lucide-react'
+import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 import { toast } from 'sonner'
-
-interface PasswordRequirement {
-  label: string
-  test: (password: string) => boolean
-}
-
-const passwordRequirements: PasswordRequirement[] = [
-  { label: 'At least 6 characters', test: (p) => p.length >= 6 },
-  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
-  { label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
-  { label: 'One number', test: (p) => /\d/.test(p) },
-]
+import TachometerAnimation from '@/components/animations/TachometerAnimation'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showAnimation, setShowAnimation] = useState(false)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match')
-      return
-    }
-
-    // Validate password requirements
-    const failedRequirements = passwordRequirements.filter((req) => !req.test(password))
-    if (failedRequirements.length > 0) {
-      toast.error('Password does not meet requirements')
+    if (password.length < 1) {
+      toast.error('Password is required')
       return
     }
 
@@ -53,13 +33,14 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: name,
           },
+          emailRedirectTo: undefined,
         },
       })
 
@@ -68,8 +49,14 @@ export default function RegisterPage() {
         return
       }
 
-      toast.success('Account created successfully! Please check your email to verify your account.')
-      router.push('/login')
+      // If we have a session, user is logged in (no email confirmation required)
+      if (data.session) {
+        setShowAnimation(true)
+      } else {
+        // Fallback: if Supabase still requires email confirmation
+        toast.success('Account created! Check your email to verify.')
+        router.push('/login')
+      }
     } catch {
       toast.error('An unexpected error occurred')
     } finally {
@@ -77,7 +64,14 @@ export default function RegisterPage() {
     }
   }
 
-  const passwordsMatch = password && confirmPassword && password === confirmPassword
+  const handleAnimationComplete = () => {
+    router.push('/dashboard')
+    router.refresh()
+  }
+
+  if (showAnimation) {
+    return <TachometerAnimation onComplete={handleAnimationComplete} />
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
@@ -139,7 +133,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password Field - Single, No Restrictions */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-[#f5f5f5]">Password</Label>
               <div className="relative">
@@ -162,74 +156,6 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-
-              {/* Password Requirements */}
-              {password && (
-                <div className="space-y-1 mt-2">
-                  {passwordRequirements.map((req, index) => {
-                    const passed = req.test(password)
-                    return (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-2 text-xs ${
-                          passed ? 'text-green-500' : 'text-[#606060]'
-                        }`}
-                      >
-                        {passed ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
-                        {req.label}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-[#f5f5f5]">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="pl-10 pr-10 bg-[#1c1c1c] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#606060] focus:border-[#d4af37] focus:ring-[#d4af37]/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a0a0] hover:text-[#d4af37] transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {confirmPassword && (
-                <div
-                  className={`flex items-center gap-2 text-xs ${
-                    passwordsMatch ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {passwordsMatch ? (
-                    <>
-                      <Check className="w-3 h-3" />
-                      Passwords match
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-3 h-3" />
-                      Passwords do not match
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </CardContent>
 
