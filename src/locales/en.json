@@ -17,6 +17,8 @@
     "year": "Year",
     "today": "Today",
     "tasks": "tasks",
+    "habits": "habits",
+    "days": "days",
     "done": "done",
     "active": "ACTIVE",
     "prev": "Prev",
@@ -27,7 +29,13 @@
     "basedOnTasks": "Based on tasks",
     "basedOnCreatedTasks": "Based on created tasks",
     "todaysProgress": "Today's progress",
-    "completionAndStreak": "completion + streak"
+    "completionAndStreak": "completion + streak",
+    "loading": "Loading...",
+    "loadingHabits": "Loading habits...",
+    "noHabitsInMonth": "No habits added to this month yet.",
+    "addHabitsFromLibrary": "Add Habits from Library",
+    "failedToLoad": "Failed to load",
+    "tryAgain": "Try Again"
   },
   "dashboard": {
     "title": "HABIT DASHBOARD",
@@ -54,24 +62,9 @@
     "habit": "HABIT",
     "analysis": "ANALYSIS",
     "goal": "Goal",
-    "weekDays": {
-      "sun": "Sun",
-      "mon": "Mon",
-      "tue": "Tue",
-      "wed": "Wed",
-      "thu": "Thu",
-      "fri": "Fri",
-      "sat": "Sat"
-    },
-    "weekDaysShort": {
-      "sun": "S",
-      "mon": "M",
-      "tue": "T",
-      "wed": "W",
-      "thu": "T",
-      "fri": "F",
-      "sat": "S"
-    }
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekDaysShort": ["S", "M", "T", "W", "T", "F", "S"]
   },
   "habits": {
     "title": "HABIT LIBRARY",

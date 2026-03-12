@@ -17,6 +17,8 @@
     "year": "Ano",
     "today": "Hoy",
     "tasks": "tareas",
+    "habits": "habitos",
+    "days": "dias",
     "done": "hecho",
     "active": "ACTIVOS",
     "prev": "Anterior",
@@ -27,7 +29,13 @@
     "basedOnTasks": "Basado en tareas",
     "basedOnCreatedTasks": "Basado en tareas creadas",
     "todaysProgress": "Progreso de hoy",
-    "completionAndStreak": "completado + racha"
+    "completionAndStreak": "completado + racha",
+    "loading": "Cargando...",
+    "loadingHabits": "Cargando habitos...",
+    "noHabitsInMonth": "No hay habitos en este mes.",
+    "addHabitsFromLibrary": "Agregar de biblioteca",
+    "failedToLoad": "Error al cargar",
+    "tryAgain": "Intentar de nuevo"
   },
   "dashboard": {
     "title": "PANEL DE HABITOS",
@@ -54,24 +62,9 @@
     "habit": "HABITO",
     "analysis": "ANALISIS",
     "goal": "Meta",
-    "weekDays": {
-      "sun": "Dom",
-      "mon": "Lun",
-      "tue": "Mar",
-      "wed": "Mie",
-      "thu": "Jue",
-      "fri": "Vie",
-      "sat": "Sab"
-    },
-    "weekDaysShort": {
-      "sun": "D",
-      "mon": "L",
-      "tue": "M",
-      "wed": "X",
-      "thu": "J",
-      "fri": "V",
-      "sat": "S"
-    }
+    "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+    "weekDays": ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"],
+    "weekDaysShort": ["D", "L", "M", "X", "J", "V", "S"]
   },
   "habits": {
     "title": "BIBLIOTECA DE HABITOS",

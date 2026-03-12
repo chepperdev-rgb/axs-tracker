@@ -21,13 +21,6 @@ import {
 } from '@/components/ui/dialog'
 import { useHabits, useHabitLogs } from '@/hooks'
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
-
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const weekDaysShort = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 // Get weeks for a given month
 function getWeeksForMonth(year: number, month: number) {
@@ -168,7 +161,7 @@ export default function MonthlyPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="glass-card border-[rgba(212,175,55,0.15)]">
-                {MONTHS.map((month, index) => (
+                {t.monthly.months.map((month: string, index: number) => (
                   <SelectItem
                     key={index}
                     value={String(index + 1)}
@@ -254,20 +247,20 @@ export default function MonthlyPage() {
       {isLoading && (
         <Card className="p-8 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-[#d4af37]" />
-          <span className="ml-2 text-[#a0a0a0]">Loading habits...</span>
+          <span className="ml-2 text-[#a0a0a0]">{t.common.loadingHabits}</span>
         </Card>
       )}
 
       {/* Empty State */}
       {!isLoading && habitsInMonth.length === 0 && (
         <Card className="p-8 text-center">
-          <p className="text-[#a0a0a0] mb-4">No habits added to this month yet.</p>
+          <p className="text-[#a0a0a0] mb-4">{t.common.noHabitsInMonth}</p>
           <Button
             variant="luxury"
             onClick={() => setIsAddModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Habits from Library
+            {t.common.addHabitsFromLibrary}
           </Button>
         </Card>
       )}
@@ -285,8 +278,8 @@ export default function MonthlyPage() {
                 {activeWeekData.days.map((day, i) => (
                   <div key={i} className="text-center">
                     <div className="text-[10px] sm:text-xs text-[#707070] uppercase">
-                      <span className="sm:hidden">{weekDaysShort[i]}</span>
-                      <span className="hidden sm:inline">{weekDays[i]}</span>
+                      <span className="sm:hidden">{t.monthly.weekDaysShort[i]}</span>
+                      <span className="hidden sm:inline">{t.monthly.weekDays[i]}</span>
                     </div>
                     <div className="text-xs sm:text-sm text-[#f5f5f5] font-medium">
                       {day.dayOfMonth > 0 ? day.dayOfMonth : '-'}
@@ -392,16 +385,16 @@ export default function MonthlyPage() {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="glass-card border-[rgba(212,175,55,0.15)] max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#f5f5f5]">Add Habits to {MONTHS[selectedMonth - 1]} {selectedYear}</DialogTitle>
+            <DialogTitle className="text-[#f5f5f5]">{t.common.addHabitsFromLibrary} - {t.monthly.months[selectedMonth - 1]} {selectedYear}</DialogTitle>
             <DialogDescription className="text-[#a0a0a0]">
-              Select habits from your library to track this month.
+              {t.habits.step2}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {habitsNotInMonth.length === 0 ? (
               <p className="text-[#a0a0a0] text-center py-4">
-                All your habits are already added to this month.
+                {t.habits.step1}
               </p>
             ) : (
               habitsNotInMonth.map((habit) => (

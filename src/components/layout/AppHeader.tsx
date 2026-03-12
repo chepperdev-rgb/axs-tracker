@@ -75,10 +75,10 @@ export function AppHeader() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="btn-luxury rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
+                  className="btn-luxury rounded-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm min-w-[60px] sm:min-w-[70px]"
                 >
                   <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">{locale.toUpperCase()}</span>
+                  <span className="ml-1 font-medium">{locale.toUpperCase()}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent

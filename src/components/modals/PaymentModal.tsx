@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Check, Crown, Sparkles, X, Zap, BarChart3, Download, HeadphonesIcon } from "lucide-react"
-import { Dialog as DialogPrimitive } from "radix-ui"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -80,10 +80,12 @@ export function PaymentModal({
         {/* Modal Content */}
         <DialogPrimitive.Content
           className={cn(
-            "fixed top-[50%] left-[50%] z-50",
-            "w-full max-w-[440px] max-h-[90vh]",
+            "fixed z-50",
+            "top-[50%] left-[50%]",
+            "w-[calc(100%-2rem)] max-w-[440px]",
+            "max-h-[calc(100vh-4rem)]",
             "translate-x-[-50%] translate-y-[-50%]",
-            "overflow-hidden rounded-2xl",
+            "overflow-y-auto rounded-2xl",
             // Glass morphism effect
             "bg-gradient-to-b from-[rgba(20,20,20,0.95)] to-[rgba(10,10,10,0.98)]",
             "backdrop-blur-xl",
@@ -97,6 +99,14 @@ export function PaymentModal({
         >
           {/* Decorative top gradient */}
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[rgba(212,175,55,0.1)] to-transparent pointer-events-none" />
+
+          {/* Accessibility: Hidden title */}
+          <DialogPrimitive.Title className="sr-only">
+            Unlock Premium
+          </DialogPrimitive.Title>
+          <DialogPrimitive.Description className="sr-only">
+            Premium subscription options for AXS Tracker
+          </DialogPrimitive.Description>
 
           {/* Close button */}
           <button
