@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "monthly": "Monthly",
+    "habits": "Habits",
+    "planner": "Planner"
+  },
+  "common": {
+    "save": "Save",
+    "add": "Add",
+    "delete": "Delete",
+    "archive": "Archive",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "today": "Today",
+    "tasks": "tasks",
+    "done": "done",
+    "active": "ACTIVE",
+    "prev": "Prev",
+    "next": "Next",
+    "noTasks": "No tasks",
+    "addTask": "Add task",
+    "chartComingSoon": "Chart coming soon...",
+    "basedOnTasks": "Based on tasks",
+    "basedOnCreatedTasks": "Based on created tasks",
+    "todaysProgress": "Today's progress",
+    "completionAndStreak": "completion + streak"
+  },
+  "dashboard": {
+    "title": "HABIT DASHBOARD",
+    "habitsInPlan": "HABITS IN PLAN",
+    "kpiLeader": "KPI LEADER - WEEKLY COMPLETION",
+    "thisWeek": "This Week",
+    "bestDay": "Best Day",
+    "monthlyScore": "MONTHLY SCORE",
+    "completionRatio": "COMPLETION RATIO",
+    "completionPerDay": "COMPLETION % PER DAY",
+    "habitsCompletedPerDay": "HABITS COMPLETED PER DAY",
+    "stackedByDay": "Stacked by day",
+    "monthlyCompletion": "MONTHLY COMPLETION",
+    "checkIns": "Check-ins",
+    "activeDays": "Active days",
+    "bestStreak": "Best streak",
+    "miniHeatmap": "MINI HEATMAP",
+    "dayIntensity": "Day intensity (completion)"
+  },
+  "monthly": {
+    "title": "MONTHLY GRID",
+    "subtitle": "Full month, by weeks",
+    "addFromLibrary": "ADD FROM LIBRARY",
+    "habit": "HABIT",
+    "analysis": "ANALYSIS",
+    "goal": "Goal",
+    "weekDays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "weekDaysShort": {
+      "sun": "S",
+      "mon": "M",
+      "tue": "T",
+      "wed": "W",
+      "thu": "T",
+      "fri": "F",
+      "sat": "S"
+    }
+  },
+  "habits": {
+    "title": "HABIT LIBRARY",
+    "subtitle": "Manage your habit library. Add to the current month explicitly to track.",
+    "addToLibrary": "ADD TO LIBRARY",
+    "saveToLibrary": "SAVE TO LIBRARY",
+    "placeholder": "Evening shutdown routine",
+    "inMonth": "IN MONTH",
+    "addToMonth": "Add to Month",
+    "howItWorks": "HOW IT WORKS",
+    "step1": "The library is your list of habits. Adding a habit here does not start tracking it.",
+    "step2": "Use \"Add to current month\" to include a habit in this month's grid.",
+    "step3": "Archive habits you no longer want to see, but keep their history."
+  },
+  "planner": {
+    "title": "DAILY TASKS",
+    "subtitle": "Weekly planner",
+    "dailyReview": "Daily Review",
+    "weeklyAnalytics": "WEEKLY ANALYTICS",
+    "weekly": "WEEKLY",
+    "weekDays": {
+      "mon": "MON",
+      "tue": "TUE",
+      "wed": "WED",
+      "thu": "THU",
+      "fri": "FRI",
+      "sat": "SAT",
+      "sun": "SUN"
+    },
+    "weekDaysShort": {
+      "mon": "M",
+      "tue": "T",
+      "wed": "W",
+      "thu": "T",
+      "fri": "F",
+      "sat": "S",
+      "sun": "S"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Russian",
+    "es": "Spanish",
+    "uk": "Ukrainian"
+  }
+}

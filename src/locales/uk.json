@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "dashboard": "Панель",
+    "monthly": "Мiсяць",
+    "habits": "Звички",
+    "planner": "Планер"
+  },
+  "common": {
+    "save": "Зберегти",
+    "add": "Додати",
+    "delete": "Видалити",
+    "archive": "Архiв",
+    "cancel": "Скасувати",
+    "edit": "Редагувати",
+    "week": "Тиждень",
+    "month": "Мiсяць",
+    "year": "Рiк",
+    "today": "Сьогоднi",
+    "tasks": "завдань",
+    "done": "виконано",
+    "active": "АКТИВНИХ",
+    "prev": "Назад",
+    "next": "Далi",
+    "noTasks": "Немае завдань",
+    "addTask": "Додати завдання",
+    "chartComingSoon": "Графiк незабаром...",
+    "basedOnTasks": "На основi завдань",
+    "basedOnCreatedTasks": "На основi створених завдань",
+    "todaysProgress": "Прогрес за сьогоднi",
+    "completionAndStreak": "виконання + серiя"
+  },
+  "dashboard": {
+    "title": "ПАНЕЛЬ ЗВИЧОК",
+    "habitsInPlan": "ЗВИЧОК У ПЛАНI",
+    "kpiLeader": "KPI ЛIДЕР - ЩОТИЖНЕВЕ ВИКОНАННЯ",
+    "thisWeek": "Цей тиждень",
+    "bestDay": "Найкращий день",
+    "monthlyScore": "МIСЯЧНИЙ БАЛ",
+    "completionRatio": "КОЕФIЦIЕНТ ВИКОНАННЯ",
+    "completionPerDay": "% ВИКОНАННЯ НА ДЕНЬ",
+    "habitsCompletedPerDay": "ЗВИЧОК ВИКОНАНО НА ДЕНЬ",
+    "stackedByDay": "З накопиченням по днях",
+    "monthlyCompletion": "ВИКОНАННЯ ЗА МIСЯЦЬ",
+    "checkIns": "Вiдмiток",
+    "activeDays": "Активних днiв",
+    "bestStreak": "Найкраща серiя",
+    "miniHeatmap": "МIНI ТЕПЛОВА КАРТА",
+    "dayIntensity": "Iнтенсивнiсть дня (виконання)"
+  },
+  "monthly": {
+    "title": "МIСЯЧНА СIТКА",
+    "subtitle": "Повний мiсяць, по тижнях",
+    "addFromLibrary": "ДОДАТИ З БIБЛIОТЕКИ",
+    "habit": "ЗВИЧКА",
+    "analysis": "АНАЛIЗ",
+    "goal": "Цiль",
+    "weekDays": {
+      "sun": "Нд",
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб"
+    },
+    "weekDaysShort": {
+      "sun": "Н",
+      "mon": "П",
+      "tue": "В",
+      "wed": "С",
+      "thu": "Ч",
+      "fri": "П",
+      "sat": "С"
+    }
+  },
+  "habits": {
+    "title": "БIБЛIОТЕКА ЗВИЧОК",
+    "subtitle": "Керуйте бiблiотекою звичок. Додайте до поточного мiсяця для вiдстеження.",
+    "addToLibrary": "ДОДАТИ ДО БIБЛIОТЕКИ",
+    "saveToLibrary": "ЗБЕРЕГТИ В БIБЛIОТЕКУ",
+    "placeholder": "Вечiрня рутина завершення дня",
+    "inMonth": "У МIСЯЦI",
+    "addToMonth": "Додати до мiсяця",
+    "howItWorks": "ЯК ЦЕ ПРАЦЮЕ",
+    "step1": "Бiблiотека — це ваш список звичок. Додавання звички сюди не запускае її вiдстеження.",
+    "step2": "Використовуйте \"Додати до поточного мiсяця\", щоб включити звичку в сiтку мiсяця.",
+    "step3": "Архiвуйте звички, якi бiльше не хочете бачити, зберiгаючи їх iсторiю."
+  },
+  "planner": {
+    "title": "ЩОДЕННI ЗАВДАННЯ",
+    "subtitle": "Щотижневий планер",
+    "dailyReview": "Денний огляд",
+    "weeklyAnalytics": "ЩОТИЖНЕВА АНАЛIТИКА",
+    "weekly": "ТИЖДЕНЬ",
+    "weekDays": {
+      "mon": "ПН",
+      "tue": "ВТ",
+      "wed": "СР",
+      "thu": "ЧТ",
+      "fri": "ПТ",
+      "sat": "СБ",
+      "sun": "НД"
+    },
+    "weekDaysShort": {
+      "mon": "П",
+      "tue": "В",
+      "wed": "С",
+      "thu": "Ч",
+      "fri": "П",
+      "sat": "С",
+      "sun": "Н"
+    }
+  },
+  "languages": {
+    "en": "Англiйська",
+    "ru": "Росiйська",
+    "es": "Iспанська",
+    "uk": "Українська"
+  }
+}

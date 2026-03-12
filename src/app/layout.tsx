@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Cormorant_Garamond } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
+import { I18nProvider } from "@/providers/i18n-provider";
+import { PaymentModalProvider } from "@/providers/payment-modal-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -38,10 +40,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} ${cormorant.variable} font-sans antialiased bg-[#0a0a0a] text-[#f5f5f5]`}
       >
-        <QueryProvider>
-          {children}
-          <Toaster />
-        </QueryProvider>
+        <I18nProvider>
+          <QueryProvider>
+            <PaymentModalProvider>
+              {children}
+              <Toaster />
+            </PaymentModalProvider>
+          </QueryProvider>
+        </I18nProvider>
       </body>
     </html>
   );

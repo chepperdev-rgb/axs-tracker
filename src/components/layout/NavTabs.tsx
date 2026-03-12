@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Calendar, Target, ClipboardList } from 'lucide-react'
+import { useTranslations } from '@/providers/i18n-provider'
 
-const tabs = [
-  { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { id: 'monthly', label: 'Monthly', href: '/monthly', icon: Calendar },
-  { id: 'habits', label: 'Habits', href: '/habits', icon: Target },
-  { id: 'planner', label: 'Planner', href: '/planner', icon: ClipboardList },
+const tabConfig = [
+  { id: 'dashboard', key: 'dashboard' as const, href: '/dashboard', icon: LayoutDashboard },
+  { id: 'monthly', key: 'monthly' as const, href: '/monthly', icon: Calendar },
+  { id: 'habits', key: 'habits' as const, href: '/habits', icon: Target },
+  { id: 'planner', key: 'planner' as const, href: '/planner', icon: ClipboardList },
 ]
 
 interface NavTabsProps {
@@ -18,9 +19,10 @@ interface NavTabsProps {
 
 export function NavTabs({ mobile = false, onItemClick }: NavTabsProps) {
   const pathname = usePathname()
+  const t = useTranslations()
 
   const getActiveTab = () => {
-    const tab = tabs.find((t) => pathname.startsWith(t.href))
+    const tab = tabConfig.find((tab) => pathname.startsWith(tab.href))
     return tab?.id || 'dashboard'
   }
 
@@ -29,7 +31,7 @@ export function NavTabs({ mobile = false, onItemClick }: NavTabsProps) {
   if (mobile) {
     return (
       <nav className="flex flex-col p-2">
-        {tabs.map((tab) => {
+        {tabConfig.map((tab) => {
           const Icon = tab.icon
           return (
             <Link
@@ -50,7 +52,7 @@ export function NavTabs({ mobile = false, onItemClick }: NavTabsProps) {
               `}
             >
               <Icon className={`w-5 h-5 ${activeTab === tab.id ? 'gold-glow' : ''}`} />
-              {tab.label}
+              {t.nav[tab.key]}
             </Link>
           )
         })}
@@ -60,7 +62,7 @@ export function NavTabs({ mobile = false, onItemClick }: NavTabsProps) {
 
   return (
     <nav className="flex items-center gap-1 p-1 glass-card rounded-full">
-      {tabs.map((tab) => (
+      {tabConfig.map((tab) => (
         <Link
           key={tab.id}
           href={tab.href}
@@ -76,7 +78,7 @@ export function NavTabs({ mobile = false, onItemClick }: NavTabsProps) {
             }
           `}
         >
-          {tab.label}
+          {t.nav[tab.key]}
         </Link>
       ))}
     </nav>

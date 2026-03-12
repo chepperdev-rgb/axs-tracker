@@ -308,3 +308,160 @@ body {
   background: var(--gold);
   color: var(--background);
 }
+
+/* ================================
+   Payment Modal Animations
+   ================================ */
+
+/* Modal entrance animation - scale up + fade in */
+@keyframes payment-modal-enter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes payment-modal-exit {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+.payment-modal-enter {
+  animation: payment-modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.payment-modal-exit {
+  animation: payment-modal-exit 0.2s ease-out forwards;
+}
+
+/* Crown floating animation */
+@keyframes crown-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+
+.crown-float {
+  animation: crown-float 4s ease-in-out infinite;
+}
+
+/* Price floating animation */
+@keyframes price-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.price-float {
+  animation: price-float 3s ease-in-out infinite;
+}
+
+/* Feature item staggered entrance */
+@keyframes feature-item-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.feature-item-enter {
+  opacity: 0;
+  animation: feature-item-enter 0.5s ease-out forwards;
+}
+
+/* Button shimmer sweep */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  50%, 100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.shimmer-sweep {
+  animation: shimmer-sweep 3s ease-in-out infinite;
+}
+
+/* Premium button with continuous shimmer */
+.premium-button-shimmer {
+  background-size: 200% auto;
+  animation: gold-shimmer 3s linear infinite;
+}
+
+/* Gold text pulse for emphasis */
+@keyframes gold-text-pulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 0 0 30px rgba(212, 175, 55, 0.4);
+  }
+}
+
+.gold-text-pulse {
+  animation: gold-text-pulse 2s ease-in-out infinite;
+}
+
+/* Sparkle rotation for icons */
+@keyframes sparkle-rotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(0deg) scale(1);
+  }
+  75% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.sparkle-rotate {
+  animation: sparkle-rotate 2s ease-in-out infinite;
+}
+
+/* Subtle border glow pulse */
+@keyframes border-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(212, 175, 55, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.2), inset 0 0 30px rgba(212, 175, 55, 0.1);
+  }
+}
+
+.border-glow-pulse {
+  animation: border-glow-pulse 3s ease-in-out infinite;
+}

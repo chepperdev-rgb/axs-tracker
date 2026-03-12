@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "monthly": "Mensual",
+    "habits": "Habitos",
+    "planner": "Planificador"
+  },
+  "common": {
+    "save": "Guardar",
+    "add": "Agregar",
+    "delete": "Eliminar",
+    "archive": "Archivar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "week": "Semana",
+    "month": "Mes",
+    "year": "Ano",
+    "today": "Hoy",
+    "tasks": "tareas",
+    "done": "hecho",
+    "active": "ACTIVOS",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "noTasks": "Sin tareas",
+    "addTask": "Agregar tarea",
+    "chartComingSoon": "Grafico proximamente...",
+    "basedOnTasks": "Basado en tareas",
+    "basedOnCreatedTasks": "Basado en tareas creadas",
+    "todaysProgress": "Progreso de hoy",
+    "completionAndStreak": "completado + racha"
+  },
+  "dashboard": {
+    "title": "PANEL DE HABITOS",
+    "habitsInPlan": "HABITOS EN PLAN",
+    "kpiLeader": "KPI LIDER - COMPLETADO SEMANAL",
+    "thisWeek": "Esta semana",
+    "bestDay": "Mejor dia",
+    "monthlyScore": "PUNTUACION MENSUAL",
+    "completionRatio": "RATIO DE COMPLETADO",
+    "completionPerDay": "% COMPLETADO POR DIA",
+    "habitsCompletedPerDay": "HABITOS COMPLETADOS POR DIA",
+    "stackedByDay": "Apilado por dia",
+    "monthlyCompletion": "COMPLETADO MENSUAL",
+    "checkIns": "Registros",
+    "activeDays": "Dias activos",
+    "bestStreak": "Mejor racha",
+    "miniHeatmap": "MINI MAPA DE CALOR",
+    "dayIntensity": "Intensidad del dia (completado)"
+  },
+  "monthly": {
+    "title": "CUADRICULA MENSUAL",
+    "subtitle": "Mes completo, por semanas",
+    "addFromLibrary": "AGREGAR DE BIBLIOTECA",
+    "habit": "HABITO",
+    "analysis": "ANALISIS",
+    "goal": "Meta",
+    "weekDays": {
+      "sun": "Dom",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mie",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sab"
+    },
+    "weekDaysShort": {
+      "sun": "D",
+      "mon": "L",
+      "tue": "M",
+      "wed": "X",
+      "thu": "J",
+      "fri": "V",
+      "sat": "S"
+    }
+  },
+  "habits": {
+    "title": "BIBLIOTECA DE HABITOS",
+    "subtitle": "Gestiona tu biblioteca de habitos. Agrega al mes actual para hacer seguimiento.",
+    "addToLibrary": "AGREGAR A BIBLIOTECA",
+    "saveToLibrary": "GUARDAR EN BIBLIOTECA",
+    "placeholder": "Rutina de cierre nocturno",
+    "inMonth": "EN MES",
+    "addToMonth": "Agregar al mes",
+    "howItWorks": "COMO FUNCIONA",
+    "step1": "La biblioteca es tu lista de habitos. Agregar un habito aqui no inicia su seguimiento.",
+    "step2": "Usa \"Agregar al mes actual\" para incluir un habito en la cuadricula del mes.",
+    "step3": "Archiva habitos que ya no quieres ver, pero conserva su historial."
+  },
+  "planner": {
+    "title": "TAREAS DIARIAS",
+    "subtitle": "Planificador semanal",
+    "dailyReview": "Revision diaria",
+    "weeklyAnalytics": "ANALITICAS SEMANALES",
+    "weekly": "SEMANAL",
+    "weekDays": {
+      "mon": "LUN",
+      "tue": "MAR",
+      "wed": "MIE",
+      "thu": "JUE",
+      "fri": "VIE",
+      "sat": "SAB",
+      "sun": "DOM"
+    },
+    "weekDaysShort": {
+      "mon": "L",
+      "tue": "M",
+      "wed": "X",
+      "thu": "J",
+      "fri": "V",
+      "sat": "S",
+      "sun": "D"
+    }
+  },
+  "languages": {
+    "en": "Ingles",
+    "ru": "Ruso",
+    "es": "Espanol",
+    "uk": "Ucraniano"
+  }
+}
