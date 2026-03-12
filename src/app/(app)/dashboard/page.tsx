@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useEffect, useState } from 'react'
 import { useTranslations, useI18n } from '@/providers/i18n-provider'
-import { TachometerGauge, TachometerBar } from '@/components/ui/tachometer-gauge'
+import { TachometerGauge, CircularGauge } from '@/components/ui/tachometer-gauge'
 
 function Skeleton({ className }: { className?: string }) {
   return (
@@ -266,25 +266,25 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* Daily Completion Tachometer Bars */}
+        {/* Daily Completion Circular Gauges */}
         <Card className="p-4 sm:p-5">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
             {t.dashboard.completionPerDay}
           </h3>
-          <div className="space-y-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
             {isLoading ? (
               <>
-                <Skeleton className="w-full h-8" />
-                <Skeleton className="w-full h-8" />
-                <Skeleton className="w-full h-8" />
+                {[...Array(7)].map((_, i) => (
+                  <Skeleton key={i} className="w-14 h-14 sm:w-16 sm:h-16 rounded-full" />
+                ))}
               </>
             ) : (
               <>
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                  <TachometerBar
+                  <CircularGauge
                     key={day}
                     percentage={stats?.weeklyData?.[i] || 0}
-                    height={28}
+                    size={56}
                     label={day}
                   />
                 ))}

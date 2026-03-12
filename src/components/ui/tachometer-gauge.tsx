@@ -79,6 +79,85 @@ export function TachometerGauge({
   )
 }
 
+// Full circle gauge with gold styling
+interface CircularGaugeProps {
+  percentage: number
+  size?: number
+  label?: string
+  className?: string
+}
+
+export function CircularGauge({
+  percentage,
+  size = 80,
+  label,
+  className
+}: CircularGaugeProps) {
+  const value = Math.min(100, Math.max(0, percentage))
+  const strokeWidth = size * 0.12
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (circumference * value) / 100
+
+  return (
+    <div className={cn('flex flex-col items-center', className)}>
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full -rotate-90">
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="#2a2a2a"
+            strokeWidth={strokeWidth}
+          />
+          {/* Progress circle with gradient */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="url(#circularGoldGradient)"
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+            style={{
+              filter: 'drop-shadow(0 0 6px rgba(212, 175, 55, 0.5))'
+            }}
+          />
+          <defs>
+            <linearGradient id="circularGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8a6a2a" />
+              <stop offset="50%" stopColor="#d4af37" />
+              <stop offset="100%" stopColor="#f0d060" />
+            </linearGradient>
+          </defs>
+        </svg>
+        {/* Center text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span
+            className="font-bold text-[#d4af37] font-mono"
+            style={{ fontSize: size * 0.22 }}
+          >
+            {Math.round(value)}%
+          </span>
+        </div>
+      </div>
+      {label && (
+        <div
+          className="text-[#a0a0a0] uppercase tracking-wider text-center mt-1"
+          style={{ fontSize: Math.max(9, size * 0.12) }}
+        >
+          {label}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Horizontal tachometer bar with proper styling
 interface TachometerBarProps {
   percentage: number

@@ -465,3 +465,8 @@ body {
 .border-glow-pulse {
   animation: border-glow-pulse 3s ease-in-out infinite;
 }
+
+/* Safe area padding for iOS devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
