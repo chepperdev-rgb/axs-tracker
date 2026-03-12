@@ -77,26 +77,28 @@ export function PaymentModal({
           }}
         />
 
-        {/* Modal Content */}
+        {/* Modal Content - wrapped in flex container for reliable centering */}
         <DialogPrimitive.Content
           className={cn(
-            "fixed z-50",
-            "top-[50%] left-[50%]",
-            "w-[calc(100%-2rem)] max-w-[440px]",
-            "max-h-[calc(100vh-4rem)]",
-            "translate-x-[-50%] translate-y-[-50%]",
-            "overflow-y-auto rounded-2xl",
-            // Glass morphism effect
-            "bg-gradient-to-b from-[rgba(20,20,20,0.95)] to-[rgba(10,10,10,0.98)]",
-            "backdrop-blur-xl",
-            "border border-[rgba(212,175,55,0.2)]",
-            "shadow-[0_0_60px_rgba(212,175,55,0.15),0_25px_50px_-12px_rgba(0,0,0,0.8)]",
-            // Animation
-            "payment-modal-enter",
-            "data-[state=closed]:payment-modal-exit",
+            "fixed inset-0 z-50",
+            "flex items-center justify-center p-4",
             "outline-none"
           )}
         >
+          <div
+            className={cn(
+              "w-full max-w-[440px]",
+              "max-h-[calc(100vh-4rem)]",
+              "overflow-y-auto rounded-2xl",
+              // Glass morphism effect
+              "bg-gradient-to-b from-[rgba(20,20,20,0.95)] to-[rgba(10,10,10,0.98)]",
+              "backdrop-blur-xl",
+              "border border-[rgba(212,175,55,0.2)]",
+              "shadow-[0_0_60px_rgba(212,175,55,0.15),0_25px_50px_-12px_rgba(0,0,0,0.8)]",
+              // Animation
+              "animate-in fade-in-0 zoom-in-95 duration-300"
+            )}
+          >
           {/* Decorative top gradient */}
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[rgba(212,175,55,0.1)] to-transparent pointer-events-none" />
 
@@ -273,6 +275,7 @@ export function PaymentModal({
                 />
               ))}
             </div>
+          </div>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
