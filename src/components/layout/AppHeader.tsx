@@ -43,25 +43,25 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-[rgba(212,175,55,0.2)]">
-      <div className="container mx-auto px-4">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
+      <div className="container mx-auto px-2 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
           {/* Logo */}
           <Logo />
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden md:flex flex-1 justify-center">
+          {/* Navigation - Always visible, centered */}
+          <div className="flex-1 flex justify-center">
             <NavTabs />
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="btn-luxury rounded-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm min-w-[60px] sm:min-w-[70px]"
+                  className="btn-luxury rounded-full px-2 sm:px-3 py-1.5 text-xs sm:text-sm min-w-[50px] sm:min-w-[70px]"
                 >
                   <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="ml-1 font-medium">{locale.toUpperCase()}</span>
