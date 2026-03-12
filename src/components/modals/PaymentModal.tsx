@@ -4,7 +4,7 @@ import * as React from "react"
 import { Check, Crown, Sparkles, X, Zap, BarChart3, Download, HeadphonesIcon } from "lucide-react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useI18n } from "@/providers/i18n-provider"
 
 interface PaymentModalProps {
   open: boolean
@@ -13,36 +13,7 @@ interface PaymentModalProps {
   onMaybeLater?: () => void
 }
 
-const features = [
-  {
-    icon: Zap,
-    title: "Unlimited Habits",
-    titleRu: "Безлимитные привычки",
-    description: "Track as many habits as you want",
-    descriptionRu: "Отслеживайте сколько угодно привычек"
-  },
-  {
-    icon: BarChart3,
-    title: "Detailed Analytics",
-    titleRu: "Детальная аналитика",
-    description: "Deep insights into your progress",
-    descriptionRu: "Глубокий анализ вашего прогресса"
-  },
-  {
-    icon: Download,
-    title: "Data Export",
-    titleRu: "Экспорт данных",
-    description: "Export your data anytime",
-    descriptionRu: "Экспортируйте данные в любое время"
-  },
-  {
-    icon: HeadphonesIcon,
-    title: "Priority Support",
-    titleRu: "Приоритетная поддержка",
-    description: "Get help when you need it",
-    descriptionRu: "Помощь когда она нужна"
-  }
-]
+const featureIcons = [Zap, BarChart3, Download, HeadphonesIcon]
 
 export function PaymentModal({
   open,
@@ -50,6 +21,15 @@ export function PaymentModal({
   onStartPremium,
   onMaybeLater
 }: PaymentModalProps) {
+  const { t } = useI18n()
+
+  const features = [
+    { icon: Zap, key: 'feature1' as const },
+    { icon: BarChart3, key: 'feature2' as const },
+    { icon: Download, key: 'feature3' as const },
+    { icon: HeadphonesIcon, key: 'feature4' as const }
+  ]
+
   const handleMaybeLater = () => {
     onMaybeLater?.()
     onOpenChange(false)
@@ -104,7 +84,7 @@ export function PaymentModal({
 
           {/* Accessibility: Hidden title */}
           <DialogPrimitive.Title className="sr-only">
-            Unlock Premium
+            {t.premium.unlockPremium}
           </DialogPrimitive.Title>
           <DialogPrimitive.Description className="sr-only">
             Premium subscription options for AXS Tracker
@@ -152,10 +132,10 @@ export function PaymentModal({
                 "bg-clip-text text-transparent",
                 "font-display tracking-wide"
               )}>
-                Unlock Premium
+                {t.premium.unlockPremium}
               </h2>
               <p className="text-[#a0a0a0] text-sm mt-1">
-                Начните использовать AXS Tracker
+                {t.premium.startUsing}
               </p>
             </div>
 
@@ -172,10 +152,10 @@ export function PaymentModal({
                     <span className="text-[#d4af37] text-lg">$</span>
                     <span className="text-4xl font-bold text-white">9</span>
                     <span className="text-4xl font-bold text-white">.99</span>
-                    <span className="text-[#a0a0a0] text-sm ml-1">/month</span>
+                    <span className="text-[#a0a0a0] text-sm ml-1">{t.premium.perMonth}</span>
                   </div>
                   <div className="text-center mt-1">
-                    <span className="text-xs text-[#707070]">or $79.99/year (save 33%)</span>
+                    <span className="text-xs text-[#707070]">{t.premium.yearlyOffer}</span>
                   </div>
                 </div>
               </div>
@@ -185,7 +165,7 @@ export function PaymentModal({
             <div className="space-y-3 mb-6">
               {features.map((feature, index) => (
                 <div
-                  key={feature.title}
+                  key={feature.key}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg",
                     "bg-[rgba(255,255,255,0.02)]",
@@ -210,12 +190,9 @@ export function PaymentModal({
                     <div className="flex items-center gap-2">
                       <feature.icon className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
                       <span className="text-sm font-medium text-white truncate">
-                        {feature.title}
+                        {t.premium[feature.key]}
                       </span>
                     </div>
-                    <p className="text-xs text-[#707070] mt-0.5 truncate">
-                      {feature.descriptionRu}
-                    </p>
                   </div>
                 </div>
               ))}
@@ -249,7 +226,7 @@ export function PaymentModal({
 
               <span className="relative flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                <span>Start Premium</span>
+                <span>{t.premium.startPremium}</span>
               </span>
             </button>
 
@@ -263,7 +240,7 @@ export function PaymentModal({
                 "underline-offset-4 hover:underline"
               )}
             >
-              Maybe later
+              {t.premium.maybeLater}
             </button>
 
             {/* Bottom decorative elements */}

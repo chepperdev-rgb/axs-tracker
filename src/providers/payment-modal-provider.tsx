@@ -4,6 +4,7 @@ import * as React from "react"
 import { createContext, useContext, useCallback, useState, useEffect } from "react"
 import { PaymentModal } from "@/components/modals/PaymentModal"
 import { toast } from "sonner"
+import { useI18n } from "@/providers/i18n-provider"
 
 const STORAGE_KEY = "axs_payment_modal_dismissed"
 const SESSION_KEY = "axs_payment_modal_shown_this_session"
@@ -29,6 +30,7 @@ interface PaymentModalContextValue {
 const PaymentModalContext = createContext<PaymentModalContextValue | null>(null)
 
 export function PaymentModalProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [hasDismissed, setHasDismissed] = useState(false)
   const [hasShownInSession, setHasShownInSession] = useState(false)
@@ -108,17 +110,17 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
         if (typeof window !== "undefined") {
           localStorage.setItem(PREMIUM_KEY, "true")
         }
-        toast.success('🎉 Welcome to Premium! Enjoy unlimited features.')
+        toast.success(t.messages.welcomeToPremium)
         closeModal()
         // Refresh to update UI
         window.location.reload()
       } else {
-        toast.error('Failed to upgrade. Please try again.')
+        toast.error(t.messages.failedUpgrade)
       }
     } catch {
-      toast.error('Network error. Please try again.')
+      toast.error(t.messages.networkError)
     }
-  }, [closeModal])
+  }, [closeModal, t.messages])
 
   const handleMaybeLater = useCallback(() => {
     dismissModal()

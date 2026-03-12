@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { useI18n } from '@/providers/i18n-provider'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -30,15 +32,15 @@ export default function LoginPage() {
       })
 
       if (error) {
-        toast.error(error.message)
+        toast.error(t.messages.failedSignIn)
         return
       }
 
-      toast.success('Welcome back!')
+      toast.success(t.messages.welcomeBack)
       router.push('/dashboard')
       router.refresh()
     } catch {
-      toast.error('An unexpected error occurred')
+      toast.error(t.messages.unexpectedError)
     } finally {
       setIsLoading(false)
     }
@@ -60,9 +62,9 @@ export default function LoginPage() {
               <span className="text-2xl font-bold text-[#0a0a0a]">AXS</span>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gold-gradient">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gold-gradient">{t.auth.welcomeBack}</CardTitle>
           <CardDescription className="text-[#a0a0a0]">
-            Sign in to continue tracking your habits
+            {t.auth.signInDescription}
           </CardDescription>
         </CardHeader>
 
@@ -70,13 +72,13 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[#f5f5f5]">Email</Label>
+              <Label htmlFor="email" className="text-[#f5f5f5]">{t.auth.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -88,13 +90,13 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#f5f5f5]">Password</Label>
+              <Label htmlFor="password" className="text-[#f5f5f5]">{t.auth.password}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder={t.auth.passwordPlaceholder}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -121,20 +123,20 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
+                  {t.auth.signingIn}
                 </>
               ) : (
-                'Sign In'
+                t.auth.signIn
               )}
             </Button>
 
             <p className="text-sm text-[#a0a0a0] text-center">
-              Don&apos;t have an account?{' '}
+              {t.auth.noAccount}{' '}
               <Link
                 href="/register"
                 className="text-[#d4af37] hover:text-[#f0d060] transition-colors font-medium"
               >
-                Create one
+                {t.auth.createOne}
               </Link>
             </p>
           </CardFooter>

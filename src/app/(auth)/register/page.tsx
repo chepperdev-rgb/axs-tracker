@@ -11,9 +11,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 import { toast } from 'sonner'
 import TachometerAnimation from '@/components/animations/TachometerAnimation'
+import { useI18n } from '@/providers/i18n-provider'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     e.preventDefault()
 
     if (password.length < 1) {
-      toast.error('Password is required')
+      toast.error(t.messages.passwordRequired)
       return
     }
 
@@ -54,11 +56,11 @@ export default function RegisterPage() {
         setShowAnimation(true)
       } else {
         // Fallback: if Supabase still requires email confirmation
-        toast.success('Account created! Check your email to verify.')
+        toast.success(t.messages.accountCreated)
         router.push('/login')
       }
     } catch {
-      toast.error('An unexpected error occurred')
+      toast.error(t.messages.unexpectedError)
     } finally {
       setIsLoading(false)
     }
@@ -89,9 +91,9 @@ export default function RegisterPage() {
               <span className="text-2xl font-bold text-[#0a0a0a]">AXS</span>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gold-gradient">Create Account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gold-gradient">{t.auth.createAccount}</CardTitle>
           <CardDescription className="text-[#a0a0a0]">
-            Start your journey to better habits
+            {t.auth.signUpDescription}
           </CardDescription>
         </CardHeader>
 
@@ -99,13 +101,13 @@ export default function RegisterPage() {
           <CardContent className="space-y-4">
             {/* Name Field */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-[#f5f5f5]">Full Name</Label>
+              <Label htmlFor="name" className="text-[#f5f5f5]">{t.auth.fullName}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Enter your name"
+                  placeholder={t.auth.namePlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -117,13 +119,13 @@ export default function RegisterPage() {
 
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[#f5f5f5]">Email</Label>
+              <Label htmlFor="email" className="text-[#f5f5f5]">{t.auth.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -135,13 +137,13 @@ export default function RegisterPage() {
 
             {/* Password Field - Single, No Restrictions */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#f5f5f5]">Password</Label>
+              <Label htmlFor="password" className="text-[#f5f5f5]">{t.auth.password}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a password"
+                  placeholder={t.auth.createPassword}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -168,20 +170,20 @@ export default function RegisterPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
+                  {t.auth.creatingAccount}
                 </>
               ) : (
-                'Create Account'
+                t.auth.createAccountBtn
               )}
             </Button>
 
             <p className="text-sm text-[#a0a0a0] text-center">
-              Already have an account?{' '}
+              {t.auth.haveAccount}{' '}
               <Link
                 href="/login"
                 className="text-[#d4af37] hover:text-[#f0d060] transition-colors font-medium"
               >
-                Sign in
+                {t.auth.signInLink}
               </Link>
             </p>
           </CardFooter>

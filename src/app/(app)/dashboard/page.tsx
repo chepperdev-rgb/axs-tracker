@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useEffect, useState } from 'react'
 import { useTranslations, useI18n } from '@/providers/i18n-provider'
+import { TachometerGauge, TachometerBar } from '@/components/ui/tachometer-gauge'
 
 function Skeleton({ className }: { className?: string }) {
   return (
@@ -144,7 +145,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-red-500">Failed to load dashboard stats</p>
+        <p className="text-red-500">{t.messages.failedLoadDashboard}</p>
       </div>
     )
   }
@@ -265,37 +266,82 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* Line Chart Placeholder */}
+        {/* Daily Completion Tachometer Bars */}
         <Card className="p-4 sm:p-5">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
             {t.dashboard.completionPerDay}
           </h3>
-          <div className="h-32 sm:h-48 flex items-center justify-center text-[#707070] text-sm">
-            {t.common.chartComingSoon}
+          <div className="space-y-4">
+            {isLoading ? (
+              <>
+                <Skeleton className="w-full h-8" />
+                <Skeleton className="w-full h-8" />
+                <Skeleton className="w-full h-8" />
+              </>
+            ) : (
+              <>
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                  <TachometerBar
+                    key={day}
+                    percentage={stats?.weeklyData?.[i] || 0}
+                    height={28}
+                    label={day}
+                  />
+                ))}
+              </>
+            )}
           </div>
         </Card>
 
-        {/* Bar Chart Placeholder */}
+        {/* Weekly Tachometer Gauges */}
         <Card className="p-4 sm:p-5">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-2 sm:mb-4">
             {t.dashboard.habitsCompletedPerDay}
           </h3>
           <p className="text-[10px] sm:text-sm text-[#707070] mb-3 sm:mb-4">{t.dashboard.stackedByDay}</p>
-          <div className="h-28 sm:h-40 flex items-center justify-center text-[#707070] text-sm">
-            {t.common.chartComingSoon}
+          <div className="flex flex-wrap justify-center gap-4">
+            {isLoading ? (
+              <>
+                <Skeleton className="w-24 h-16" />
+                <Skeleton className="w-24 h-16" />
+                <Skeleton className="w-24 h-16" />
+              </>
+            ) : (
+              <>
+                <TachometerGauge
+                  percentage={stats?.weeklyCompletion || 0}
+                  size="sm"
+                  label={t.common.week}
+                />
+                <TachometerGauge
+                  percentage={stats?.monthlyCompletion || 0}
+                  size="sm"
+                  label={t.common.month}
+                />
+                <TachometerGauge
+                  percentage={Math.round((stats?.completionRatio || 0) * 100)}
+                  size="sm"
+                  label="Ratio"
+                />
+              </>
+            )}
           </div>
         </Card>
 
-        {/* Donut Chart */}
+        {/* Tachometer Gauge - Monthly Completion */}
         <Card className="p-4 sm:p-5">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
             {t.dashboard.monthlyCompletion}
           </h3>
           <div className="flex items-center justify-center">
             {isLoading ? (
-              <Skeleton className="w-28 h-28 sm:w-40 sm:h-40 rounded-full" />
+              <Skeleton className="w-40 h-24 rounded" />
             ) : (
-              <AnimatedDonut percentage={stats?.monthlyCompletion || 0} monthLabel={t.common.month} />
+              <TachometerGauge
+                percentage={stats?.monthlyCompletion || 0}
+                size="lg"
+                label={t.common.month}
+              />
             )}
           </div>
           <div className="flex justify-around mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[rgba(212,175,55,0.15)]">
