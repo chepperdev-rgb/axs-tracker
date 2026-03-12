@@ -4,9 +4,6 @@ import { habits, habitLogs, monthlyPlans } from '@/db/schema'
 import { eq, and, gte, lte, sql } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 
-// Cache for 30 seconds to reduce DB load
-export const revalidate = 30
-
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -355,6 +352,10 @@ export async function GET() {
       heatmapData,
       weeklyData,
       habitsInPlan: totalHabitsInPlan,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=30',
+      }
     })
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
