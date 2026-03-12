@@ -266,31 +266,64 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* Daily Completion Circular Gauges */}
+        {/* Daily Completion Circular Gauges - 2-3-2 Layout */}
         <Card className="p-4 sm:p-5">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
             {t.dashboard.completionPerDay}
           </h3>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-            {isLoading ? (
-              <>
-                {[...Array(7)].map((_, i) => (
-                  <Skeleton key={i} className="w-14 h-14 sm:w-16 sm:h-16 rounded-full" />
-                ))}
-              </>
-            ) : (
-              <>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex justify-center gap-4">
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+              </div>
+              <div className="flex justify-center gap-3">
+                <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+              </div>
+              <div className="flex justify-center gap-4">
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
+              {/* Row 1: 2 bigger gauges (Mon, Tue) */}
+              <div className="flex justify-center gap-4 sm:gap-6">
+                {['Mon', 'Tue'].map((day, i) => (
                   <CircularGauge
                     key={day}
                     percentage={stats?.weeklyData?.[i] || 0}
-                    size={56}
+                    size={70}
                     label={day}
                   />
                 ))}
-              </>
-            )}
-          </div>
+              </div>
+              {/* Row 2: 3 smaller gauges (Wed, Thu, Fri) */}
+              <div className="flex justify-center gap-3 sm:gap-4">
+                {['Wed', 'Thu', 'Fri'].map((day, i) => (
+                  <CircularGauge
+                    key={day}
+                    percentage={stats?.weeklyData?.[i + 2] || 0}
+                    size={52}
+                    label={day}
+                  />
+                ))}
+              </div>
+              {/* Row 3: 2 bigger gauges (Sat, Sun) */}
+              <div className="flex justify-center gap-4 sm:gap-6">
+                {['Sat', 'Sun'].map((day, i) => (
+                  <CircularGauge
+                    key={day}
+                    percentage={stats?.weeklyData?.[i + 5] || 0}
+                    size={70}
+                    label={day}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Weekly Tachometer Gauges */}

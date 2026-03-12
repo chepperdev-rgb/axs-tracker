@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check, Star, Plus, Loader2 } from 'lucide-react'
 import { useTranslations } from '@/providers/i18n-provider'
+import { CircularGauge } from '@/components/ui/tachometer-gauge'
 import {
   Select,
   SelectContent,
@@ -346,38 +347,38 @@ export default function MonthlyPage() {
         </Card>
       )}
 
-      {/* Analysis Section */}
+      {/* Analysis Section - Circular Gauges 2 per row */}
       {!isLoading && habitsInMonth.length > 0 && (
         <div className="space-y-3 sm:space-y-4">
           <h2 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
             {t.monthly.analysis}
           </h2>
 
-          <div className="space-y-3">
-            {habitsInMonth.map((habit) => {
-              const completedCount = getCompletionCount(habit.id)
-              const percentage = Math.round((completedCount / daysInMonth) * 100)
-              return (
-                <Card key={habit.id} className="p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 mb-2">
-                    <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium flex items-center gap-2">
-                      {habit.emoji && <span>{habit.emoji}</span>}
-                      {habit.name}
-                    </span>
-                    <span className="text-[10px] sm:text-sm text-[#a0a0a0]">
-                      {t.monthly.goal} {daysInMonth} · <span className="text-[#d4af37]">{completedCount} {t.common.done}</span>
-                    </span>
-                  </div>
-                  <div className="h-2 sm:h-2.5 bg-[#2a2a2a] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#9a8330] via-[#d4af37] to-[#f0d060] rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(212,175,55,0.4)]"
-                      style={{ width: `${percentage}%` }}
+          <Card className="p-4 sm:p-6">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              {habitsInMonth.map((habit) => {
+                const completedCount = getCompletionCount(habit.id)
+                const percentage = Math.round((completedCount / daysInMonth) * 100)
+                return (
+                  <div key={habit.id} className="flex flex-col items-center text-center">
+                    <CircularGauge
+                      percentage={percentage}
+                      size={90}
                     />
+                    <div className="mt-2">
+                      <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium flex items-center justify-center gap-1">
+                        {habit.emoji && <span>{habit.emoji}</span>}
+                        {habit.name}
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-[#707070] block mt-0.5">
+                        {completedCount}/{daysInMonth} {t.common.done}
+                      </span>
+                    </div>
                   </div>
-                </Card>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </Card>
         </div>
       )}
 
