@@ -25,36 +25,37 @@ export default function HabitsPage() {
   const [newHabit, setNewHabit] = useState('')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
+          <h1 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
             HABIT LIBRARY
           </h1>
-          <p className="text-lg text-[#f5f5f5] mt-1">
+          <p className="text-sm sm:text-lg text-[#f5f5f5] mt-1">
             Manage your habit library. Add to the current month explicitly to track.
           </p>
         </div>
-        <div className="px-4 py-2 rounded-full border border-[#2a2a2a] text-[#a0a0a0] text-sm">
-          <span className="text-[#d4af37] font-semibold">{mockHabits.length}</span> ACTIVE
+        <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[rgba(212,175,55,0.3)] text-[#a0a0a0] text-xs sm:text-sm self-start">
+          <span className="text-[#d4af37] font-semibold gold-glow">{mockHabits.length}</span> ACTIVE
         </div>
       </div>
 
       {/* Add Habit Form */}
-      <Card className="bg-[#141414] border-[#2a2a2a] p-5">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4">
+      <Card className="p-3 sm:p-5">
+        <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
           ADD TO LIBRARY
         </h3>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Input
             value={newHabit}
             onChange={(e) => setNewHabit(e.target.value)}
             placeholder="Evening shutdown routine"
-            className="flex-1 bg-[#1c1c1c] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#707070] focus:border-[#d4af37] focus:ring-[#d4af37]/20"
+            className="flex-1 bg-[rgba(0,0,0,0.3)] border-[rgba(212,175,55,0.15)] text-[#f5f5f5] placeholder:text-[#707070] focus:border-[#d4af37] focus:ring-[#d4af37]/20 text-sm"
           />
-          <Button className="bg-[#d4af37] text-black hover:bg-[#f0d060] font-semibold px-6">
-            SAVE TO LIBRARY
+          <Button variant="luxury" className="w-full sm:w-auto px-4 sm:px-6 text-xs sm:text-sm">
+            <span className="hidden sm:inline">SAVE TO LIBRARY</span>
+            <span className="sm:hidden">SAVE</span>
           </Button>
         </div>
       </Card>
@@ -64,26 +65,27 @@ export default function HabitsPage() {
         {mockHabits.map((habit) => (
           <Card
             key={habit.id}
-            className="bg-[#141414] border-[#2a2a2a] p-4 flex items-center justify-between hover:border-[#3a3a3a] transition-colors"
+            className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 sm:justify-between hover:border-[rgba(212,175,55,0.3)] transition-colors"
           >
-            <div className="flex items-center gap-3">
-              <Star className="w-5 h-5 text-[#d4af37]" />
-              <span className="text-[#f5f5f5] font-medium">{habit.name}</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37] flex-shrink-0 gold-glow" />
+              <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{habit.name}</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               {habit.inCurrentMonth ? (
-                <span className="px-3 py-1 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-medium">
-                  IN CURRENT MONTH
+                <span className="px-2 sm:px-3 py-1 rounded-full bg-[rgba(212,175,55,0.15)] text-[#d4af37] text-[10px] sm:text-xs font-medium border border-[rgba(212,175,55,0.3)]">
+                  IN MONTH
                 </span>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="gold-outline"
                   size="sm"
-                  className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37]/10"
+                  className="text-xs"
                 >
-                  <Calendar className="w-4 h-4 mr-1" />
-                  Add to Month
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Add to Month</span>
+                  <span className="sm:hidden">Add</span>
                 </Button>
               )}
 
@@ -91,21 +93,21 @@ export default function HabitsPage() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="text-[#707070] hover:text-[#f5f5f5] hover:bg-[#2a2a2a]"
+                    size="icon-sm"
+                    className="text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(212,175,55,0.1)]"
                   >
-                    <MoreHorizontal className="w-5 h-5" />
+                    <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="bg-[#1c1c1c] border border-[#2a2a2a] rounded-xl"
+                  className="glass-card rounded-xl"
                 >
-                  <DropdownMenuItem className="text-[#a0a0a0] hover:text-[#f5f5f5] hover:bg-[#2a2a2a] cursor-pointer">
+                  <DropdownMenuItem className="text-[#a0a0a0] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] cursor-pointer">
                     <Archive className="w-4 h-4 mr-2" />
                     Archive
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-[#e74c3c] hover:text-[#e74c3c] hover:bg-[#2a2a2a] cursor-pointer">
+                  <DropdownMenuItem className="text-[#e74c3c] hover:text-[#e74c3c] hover:bg-[rgba(231,76,60,0.1)] cursor-pointer">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
@@ -117,19 +119,19 @@ export default function HabitsPage() {
       </div>
 
       {/* How It Works Section */}
-      <Card className="bg-[#141414] border-[#2a2a2a] p-5">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4">
+      <Card className="p-3 sm:p-5">
+        <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
           HOW IT WORKS
         </h3>
-        <div className="space-y-3 text-[#a0a0a0] text-sm">
+        <div className="space-y-2 sm:space-y-3 text-[#a0a0a0] text-xs sm:text-sm">
           <p>
-            <span className="text-[#d4af37]">1.</span> The library is your list of habits. Adding a habit here does not start tracking it.
+            <span className="text-[#d4af37] font-semibold">1.</span> The library is your list of habits. Adding a habit here does not start tracking it.
           </p>
           <p>
-            <span className="text-[#d4af37]">2.</span> Use "Add to current month" to include a habit in this month's grid. On the Monthly page you can add from library or remove.
+            <span className="text-[#d4af37] font-semibold">2.</span> Use "Add to current month" to include a habit in this month's grid.
           </p>
           <p>
-            <span className="text-[#d4af37]">3.</span> Archive habits you no longer want to see, but keep their history.
+            <span className="text-[#d4af37] font-semibold">3.</span> Archive habits you no longer want to see, but keep their history.
           </p>
         </div>
       </Card>
