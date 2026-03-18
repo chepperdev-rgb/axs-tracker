@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from '@/providers/i18n-provider'
 
 interface TachometerAnimationProps {
   onComplete: () => void
 }
 
 export default function TachometerAnimation({ onComplete }: TachometerAnimationProps) {
+  const t = useTranslations()
   const [progress, setProgress] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -292,9 +294,9 @@ export default function TachometerAnimation({ onComplete }: TachometerAnimationP
             textShadow: '0 0 40px rgba(212,175,55,0.3)'
           }}
         >
-          Welcome to AXS
+          {t.animation.welcomeToAxs}
         </h2>
-        <p className="text-[#a0a0a0]">Your journey begins now</p>
+        <p className="text-[#a0a0a0]">{t.animation.journeyBegins}</p>
       </div>
 
       {/* Bottom decorative line */}

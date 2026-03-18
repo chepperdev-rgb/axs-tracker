@@ -175,8 +175,7 @@ export async function GET() {
     )
 
     // Find best day of the week
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    let bestDayIndex = 0
+    let bestDayIndex: number | null = null
     let bestDayPercentage = 0
 
     for (let i = 0; i < 7; i++) {
@@ -348,7 +347,7 @@ export async function GET() {
       totalTasksThisWeek: totalExpectedThisWeek,
       tasksCompletedToday,
       totalTasksToday,
-      bestDay: { day: bestDayIndex, percentage: bestDayPercentage },
+      bestDay: { day: bestDayIndex !== null ? bestDayIndex : 'N/A', percentage: bestDayPercentage },
       monthlyCompletion,
       checkIns,
       activeDays,

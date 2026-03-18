@@ -242,7 +242,7 @@ export default function MonthlyPage() {
       {/* Info Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <p className="text-xs sm:text-sm text-[#a0a0a0]">
-          {habitsInMonth.length} habit{habitsInMonth.length !== 1 ? 's' : ''} x {daysInMonth} days · <span className="text-[#d4af37]">{t.common.week} 1 – {weeks.length}</span>
+          {habitsInMonth.length} {t.common.habits} x {daysInMonth} {t.common.days} · <span className="text-[#d4af37]">{t.common.week} 1 – {weeks.length}</span>
         </p>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button

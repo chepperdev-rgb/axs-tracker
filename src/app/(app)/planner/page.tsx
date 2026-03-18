@@ -207,7 +207,7 @@ export default function PlannerPage() {
       <Card className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
-            WEEK: <span className="text-[#d4af37] gold-glow">{weekStats.completed}/{weekStats.total}</span>
+            {t.common.week}: <span className="text-[#d4af37] gold-glow">{weekStats.completed}/{weekStats.total}</span>
           </span>
           <span className="text-[10px] sm:text-sm text-[#707070]">{t.common.basedOnCreatedTasks}</span>
         </div>
@@ -645,7 +645,7 @@ export default function PlannerPage() {
               </div>
             </div>
             <p className="text-[10px] sm:text-xs text-[#707070] text-center mt-2 sm:mt-3">
-              {weekStats.completed} of {weekStats.total} {t.common.tasks}
+              {weekStats.completed}/{weekStats.total} {t.common.tasks}
             </p>
           </Card>
 
@@ -672,7 +672,7 @@ export default function PlannerPage() {
               </div>
             </div>
             <p className="text-[10px] sm:text-xs text-[#707070] text-center mt-2 sm:mt-3">
-              {todayStats.completed} of {todayStats.total} {t.common.tasks}
+              {todayStats.completed}/{todayStats.total} {t.common.tasks}
             </p>
           </Card>
         </div>

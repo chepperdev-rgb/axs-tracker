@@ -105,15 +105,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only allow logging for today
-    const now = new Date()
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    if (date !== todayStr) {
-      return NextResponse.json(
-        { error: 'Can only log habits for today' },
-        { status: 403 }
-      )
-    }
+    // Date restriction enforced client-side (monthly/planner pages).
+    // Server does NOT enforce today-only because server runs in UTC
+    // and would reject valid requests from UTC+ timezone users.
 
     // Verify the habit belongs to the user
     const [habit] = await db
