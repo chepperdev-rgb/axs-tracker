@@ -4,21 +4,141 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Star, MoreHorizontal, Archive, Trash2, Calendar, Loader2, ArchiveRestore, X } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Star, MoreHorizontal, Archive, Trash2, Calendar, Loader2, ArchiveRestore, X, Pencil } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useHabits } from '@/hooks/use-habits'
+import { useHabits, type HabitWithMonthStatus } from '@/hooks/use-habits'
 import { toast } from 'sonner'
 import { useTranslations } from '@/providers/i18n-provider'
 
+// ─── Edit Modal ─────────────────────────────────────────────────────
+function EditHabitModal({
+  habit,
+  onSave,
+  onClose,
+  isSaving,
+}: {
+  habit: HabitWithMonthStatus
+  onSave: (data: { name: string; emoji: string; category: string }) => void
+  onClose: () => void
+  isSaving: boolean
+}) {
+  const [name, setName] = useState(habit.name)
+  const [emoji, setEmoji] = useState(habit.emoji || '')
+  const [category, setCategory] = useState(habit.category || '')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim()) {
+      toast.error('Habit name is required')
+      return
+    }
+    onSave({ name: name.trim(), emoji, category })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      {/* Modal */}
+      <div className="relative w-full max-w-md glass-card rounded-2xl p-6 border border-[rgba(212,175,55,0.2)]">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-semibold text-[#f5f5f5]">Edit Habit</h3>
+          <button
+            onClick={onClose}
+            className="text-[#707070] hover:text-[#f5f5f5] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Name</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="bg-[rgba(0,0,0,0.3)] border-[rgba(212,175,55,0.15)] text-[#f5f5f5] focus:border-[#d4af37] focus:ring-[#d4af37]/20"
+              disabled={isSaving}
+              autoFocus
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Emoji</Label>
+            <Input
+              value={emoji}
+              onChange={(e) => setEmoji(e.target.value)}
+              placeholder="🏋️"
+              className="bg-[rgba(0,0,0,0.3)] border-[rgba(212,175,55,0.15)] text-[#f5f5f5] placeholder:text-[#707070] focus:border-[#d4af37] focus:ring-[#d4af37]/20"
+              disabled={isSaving}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Category</Label>
+            <div className="flex flex-wrap gap-2">
+              {['health', 'productivity', 'growth', 'mindfulness', 'finance'].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(category === cat ? '' : cat)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                    category === cat
+                      ? 'bg-[rgba(212,175,55,0.15)] border-[#d4af37] text-[#d4af37]'
+                      : 'border-[#2a2a2a] text-[#707070] hover:border-[#505050]'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              className="flex-1 text-[#a0a0a0] hover:text-[#f5f5f5]"
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="luxury"
+              className="flex-1"
+              disabled={isSaving || !name.trim()}
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Save'
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 export default function HabitsPage() {
   const t = useTranslations()
   const [newHabit, setNewHabit] = useState('')
   const [showArchived, setShowArchived] = useState(false)
+  const [editingHabit, setEditingHabit] = useState<HabitWithMonthStatus | null>(null)
 
   const {
     habits,
@@ -27,6 +147,8 @@ export default function HabitsPage() {
     error,
     createHabit,
     isCreating,
+    updateHabit,
+    isUpdating,
     deleteHabit,
     isDeleting,
     archiveHabit,
@@ -53,6 +175,22 @@ export default function HabitsPage() {
       toast.success('Habit added to library')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create habit')
+    }
+  }
+
+  const handleEditSave = async (data: { name: string; emoji: string; category: string }) => {
+    if (!editingHabit) return
+    try {
+      await updateHabit({
+        id: editingHabit.id,
+        name: data.name,
+        emoji: data.emoji || undefined,
+        category: data.category || undefined,
+      })
+      setEditingHabit(null)
+      toast.success('Habit updated')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update habit')
     }
   }
 
@@ -92,7 +230,7 @@ export default function HabitsPage() {
     }
   }
 
-  const isOperating = isCreating || isDeleting || isArchiving || isAddingToMonth || isRemovingFromMonth
+  const isOperating = isCreating || isDeleting || isArchiving || isAddingToMonth || isRemovingFromMonth || isUpdating
 
   if (isError) {
     return (
@@ -111,6 +249,16 @@ export default function HabitsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Edit Modal */}
+      {editingHabit && (
+        <EditHabitModal
+          habit={editingHabit}
+          onSave={handleEditSave}
+          onClose={() => setEditingHabit(null)}
+          isSaving={isUpdating}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
@@ -190,7 +338,12 @@ export default function HabitsPage() {
                 ) : (
                   <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37] flex-shrink-0 gold-glow" />
                 )}
-                <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{habit.name}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{habit.name}</span>
+                  {habit.category && (
+                    <span className="text-[10px] text-[#707070] uppercase tracking-wider">{habit.category}</span>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -239,7 +392,15 @@ export default function HabitsPage() {
                     className="glass-card rounded-xl"
                   >
                     <DropdownMenuItem
-                      className="text-[#a0a0a0] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
+                      className="text-[#d4af37] hover:text-[#f0d060] hover:bg-[rgba(212,175,55,0.1)] cursor-pointer"
+                      onClick={() => setEditingHabit(habit)}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-[#2a2a2a]" />
+                    <DropdownMenuItem
+                      className="text-[#707070] hover:text-[#a0a0a0] hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
                       onClick={() => handleArchive(habit.id, false)}
                     >
                       <Archive className="w-4 h-4 mr-2" />
