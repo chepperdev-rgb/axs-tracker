@@ -110,7 +110,18 @@
     "showArchived": "MOSTRAR ARCHIVADOS",
     "hideArchived": "OCULTAR ARCHIVADOS",
     "noHabitsYet": "Sin habitos. Agrega el primero arriba.",
-    "taskPlaceholder": "Nombre de la tarea..."
+    "taskPlaceholder": "Nombre de la tarea...",
+    "completed": "completado",
+    "missed": "perdido",
+    "doneSoFar": "hecho hasta ahora",
+    "habitUpdated": "Habito actualizado",
+    "habitsAdded": "habitos agregados",
+    "allHabitsAdded": "Todos los habitos ya agregados",
+    "createNewInLibrary": "Crea nuevos habitos en la biblioteca",
+    "selectHabitsToAdd": "Selecciona habitos",
+    "addCount": "Agregar {count}",
+    "cumulativeProgress": "PROGRESO ACUMULADO",
+    "ratio": "Ratio"
   },
   "dashboard": {
     "title": "PANEL DE HABITOS",
@@ -128,7 +139,8 @@
     "activeDays": "Dias activos",
     "bestStreak": "Mejor racha",
     "miniHeatmap": "MINI MAPA DE CALOR",
-    "dayIntensity": "Intensidad del dia (completado)"
+    "dayIntensity": "Intensidad del dia (completado)",
+    "cumulativeProgress": "PROGRESO ACUMULADO"
   },
   "monthly": {
     "title": "CUADRICULA MENSUAL",
@@ -152,7 +164,16 @@
     "howItWorks": "COMO FUNCIONA",
     "step1": "La biblioteca es tu lista de habitos. Agregar un habito aqui no inicia su seguimiento.",
     "step2": "Usa \"Agregar al mes actual\" para incluir un habito en la cuadricula del mes.",
-    "step3": "Archiva habitos que ya no quieres ver, pero conserva su historial."
+    "step3": "Archiva habitos que ya no quieres ver, pero conserva su historial.",
+    "editHabit": "Editar habito",
+    "name": "Nombre",
+    "emoji": "Emoji",
+    "category": "Categoria",
+    "categoryHealth": "Salud",
+    "categoryProductivity": "Productividad",
+    "categoryGrowth": "Crecimiento",
+    "categoryMindfulness": "Mindfulness",
+    "categoryFinance": "Finanzas"
   },
   "planner": {
     "title": "TAREAS DIARIAS",
@@ -177,7 +198,46 @@
       "fri": "V",
       "sat": "S",
       "sun": "D"
-    }
+    },
+    "today": "HOY",
+    "motivation100": "Dia perfecto! Todas las tareas completadas.",
+    "motivation75": "Gran esfuerzo! Casi todo hecho.",
+    "motivation50": "Buen progreso. Sigue construyendo impulso.",
+    "motivationLow": "Cada paso cuenta. Manana es una nueva oportunidad.",
+    "motivationZero": "Se perdio este. Usalo como combustible para hoy.",
+    "motivationFuture": "Planifica — agrega tareas para este dia.",
+    "motivationNoTasks": "No habia tareas planificadas para este dia.",
+    "noTasks": "Sin tareas"
+  },
+  "landing": {
+    "luxury": "LUJO",
+    "signIn": "Iniciar sesion",
+    "getStarted": "Comenzar",
+    "trackYour": "Registra tus",
+    "habits": "Habitos",
+    "improveYour": "Mejora tu",
+    "productivity": "Productividad",
+    "heroDesc": "Indicadores hermosos. Progreso en tiempo real. Una experiencia premium disenada para mantenerte avanzando — cada dia.",
+    "startFree": "Empezar gratis",
+    "whyAxs": "Por que AXS?",
+    "visualProgress": "Progreso visual",
+    "visualProgressDesc": "Indicadores y graficos impresionantes que hacen el seguimiento gratificante.",
+    "dailyRituals": "Rituales diarios",
+    "dailyRitualsDesc": "Construye rutinas poderosas con recordatorios inteligentes y seguimiento de rachas.",
+    "premiumDesign": "Diseno premium",
+    "premiumDesignDesc": "Interfaz de lujo oscura con acentos dorados. Cada pixel creado para la elegancia.",
+    "readyToLevelUp": "Listo para subir de nivel?",
+    "joinThousands": "Unete a miles de personas que rastrean sus habitos con AXS.",
+    "startTracking": "Empezar a rastrear",
+    "premiumHabitTracking": "Seguimiento premium de habitos"
+  },
+  "seedHabits": {
+    "workout": "Entrenamiento / Actividad",
+    "coldShower": "Ducha de contraste / Exposicion al frio",
+    "reading": "Lectura / Aprendizaje (30 min)",
+    "planning": "Planificacion del dia por la noche",
+    "sleep": "Norma de sueno (7-8 horas)",
+    "wakeUp": "Despertar a las 5:00"
   },
   "languages": {
     "en": "Ingles",

@@ -93,12 +93,12 @@ function AnimatedDonut({ percentage, monthLabel = 'This Month' }: { percentage: 
   )
 }
 
-function WeeklyBarChart({ data }: { data: number[] }) {
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+function WeeklyBarChart({ data, days }: { data: number[]; days?: string[] }) {
+  const dayLabels = days ?? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
   return (
     <div className="flex items-end gap-1 h-6 sm:h-8 mt-3 sm:mt-4">
-      {days.map((day, i) => {
+      {dayLabels.map((day, i) => {
         const height = data[i] > 0 ? Math.max((data[i] / 100) * 100, 10) : 0
         return (
           <div key={i} className="flex-1 flex flex-col items-center">
@@ -342,7 +342,18 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 </div>
-                <WeeklyBarChart data={stats?.weeklyData || [0, 0, 0, 0, 0, 0, 0]} />
+                <WeeklyBarChart
+                  data={stats?.weeklyData || [0, 0, 0, 0, 0, 0, 0]}
+                  days={[
+                    t.planner.weekDaysShort.mon,
+                    t.planner.weekDaysShort.tue,
+                    t.planner.weekDaysShort.wed,
+                    t.planner.weekDaysShort.thu,
+                    t.planner.weekDaysShort.fri,
+                    t.planner.weekDaysShort.sat,
+                    t.planner.weekDaysShort.sun,
+                  ]}
+                />
               </>
             )}
           </div>
@@ -412,9 +423,9 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-4 sm:gap-6">
               {/* Row 1: 2 bigger gauges (Mon, Tue) - full width */}
               <div className="flex justify-between">
-                {['Mon', 'Tue'].map((day, i) => (
+                {[t.planner.weekDays.mon, t.planner.weekDays.tue].map((day, i) => (
                   <CircularGauge
-                    key={day}
+                    key={i}
                     percentage={stats?.weeklyData?.[i] || 0}
                     size={90}
                     label={day}
@@ -423,9 +434,9 @@ export default function DashboardPage() {
               </div>
               {/* Row 2: 3 smaller gauges (Wed, Thu, Fri) */}
               <div className="flex justify-between px-2 sm:px-8">
-                {['Wed', 'Thu', 'Fri'].map((day, i) => (
+                {[t.planner.weekDays.wed, t.planner.weekDays.thu, t.planner.weekDays.fri].map((day, i) => (
                   <CircularGauge
-                    key={day}
+                    key={i}
                     percentage={stats?.weeklyData?.[i + 2] || 0}
                     size={70}
                     label={day}
@@ -434,9 +445,9 @@ export default function DashboardPage() {
               </div>
               {/* Row 3: 2 bigger gauges (Sat, Sun) - full width */}
               <div className="flex justify-between">
-                {['Sat', 'Sun'].map((day, i) => (
+                {[t.planner.weekDays.sat, t.planner.weekDays.sun].map((day, i) => (
                   <CircularGauge
-                    key={day}
+                    key={i}
                     percentage={stats?.weeklyData?.[i + 5] || 0}
                     size={90}
                     label={day}
@@ -475,7 +486,7 @@ export default function DashboardPage() {
                 <TachometerGauge
                   percentage={Math.round((stats?.completionRatio || 0) * 100)}
                   size="sm"
-                  label="Ratio"
+                  label={t.common.ratio}
                 />
               </>
             )}
@@ -567,7 +578,7 @@ export default function DashboardPage() {
         {/* Cumulative Progress Chart */}
         <Card className="p-4 sm:p-5 lg:col-span-2">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
-            Cumulative Progress
+            {t.dashboard.cumulativeProgress}
           </h3>
           {isLoading ? (
             <Skeleton className="w-full h-32 sm:h-40 rounded" />

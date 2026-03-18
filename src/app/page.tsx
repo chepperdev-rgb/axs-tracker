@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import { useTranslations } from '@/providers/i18n-provider'
 
 // ─── Animated Circular Gauge ────────────────────────────────────────
 function AnimatedGauge({
@@ -389,6 +390,7 @@ function Particles() {
 // LANDING PAGE
 // ═══════════════════════════════════════════════════════════════════════
 export default function LandingPage() {
+  const t = useTranslations()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -415,7 +417,7 @@ export default function LandingPage() {
               AXS
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] text-[#707070] tracking-[0.2em] uppercase font-semibold">LUXURY</span>
+              <span className="text-[9px] text-[#707070] tracking-[0.2em] uppercase font-semibold">{t.landing.luxury}</span>
               <span className="text-base text-[#f5f5f5] font-semibold -mt-0.5">Tracker</span>
             </div>
           </div>
@@ -427,13 +429,13 @@ export default function LandingPage() {
               href="/login"
               className="px-5 py-2 text-sm text-[#a0a0a0] hover:text-[#d4af37] transition-colors"
             >
-              Sign In
+              {t.landing.signIn}
             </Link>
             <Link
               href="/register"
               className="btn-luxury px-6 py-2.5 rounded-xl text-sm font-semibold"
             >
-              Get Started
+              {t.landing.getStarted}
             </Link>
           </div>
         </MotionText>
@@ -445,22 +447,21 @@ export default function LandingPage() {
         {/* Main heading */}
         <MotionText delay={400} className="text-center">
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight">
-            <span className="text-[#f5f5f5]">Track Your </span>
-            <span className="text-gold-gradient">Habits</span>
+            <span className="text-[#f5f5f5]">{t.landing.trackYour} </span>
+            <span className="text-gold-gradient">{t.landing.habits}</span>
           </h1>
         </MotionText>
 
         <MotionText delay={600} className="text-center mt-2">
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight">
-            <span className="text-[#f5f5f5]">Improve Your </span>
-            <span className="text-gold-gradient gold-text-pulse">Productivity</span>
+            <span className="text-[#f5f5f5]">{t.landing.improveYour} </span>
+            <span className="text-gold-gradient gold-text-pulse">{t.landing.productivity}</span>
           </h1>
         </MotionText>
 
         <MotionText delay={900} className="text-center mt-6 max-w-xl">
           <p className="text-[#707070] text-lg md:text-xl leading-relaxed">
-            Beautiful gauges. Real-time progress. A premium experience
-            designed to keep you moving forward — every single day.
+            {t.landing.heroDesc}
           </p>
         </MotionText>
 
@@ -469,13 +470,13 @@ export default function LandingPage() {
             href="/register"
             className="btn-luxury px-8 py-3.5 rounded-xl text-base font-semibold"
           >
-            Start Free
+            {t.landing.startFree}
           </Link>
           <Link
             href="/login"
             className="btn-glass px-8 py-3.5 rounded-xl text-base font-semibold"
           >
-            Sign In
+            {t.landing.signIn}
           </Link>
         </MotionText>
 
@@ -501,15 +502,15 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <MotionText delay={2600} className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-[#f5f5f5]">
-              Why <span className="text-gold-gradient">AXS</span>?
+              {t.landing.whyAxs}
             </h2>
           </MotionText>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                title: 'Visual Progress',
-                desc: 'Stunning gauges and charts that make tracking feel rewarding, not tedious.',
+                title: t.landing.visualProgress,
+                desc: t.landing.visualProgressDesc,
                 icon: (
                   <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5">
                     <circle cx="12" cy="12" r="10" />
@@ -519,8 +520,8 @@ export default function LandingPage() {
                 delay: 2700,
               },
               {
-                title: 'Daily Rituals',
-                desc: 'Build powerful routines with smart reminders and streak tracking.',
+                title: t.landing.dailyRituals,
+                desc: t.landing.dailyRitualsDesc,
                 icon: (
                   <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -529,8 +530,8 @@ export default function LandingPage() {
                 delay: 2900,
               },
               {
-                title: 'Premium Design',
-                desc: 'Dark luxury interface with gold accents. Every pixel crafted for elegance.',
+                title: t.landing.premiumDesign,
+                desc: t.landing.premiumDesignDesc,
                 icon: (
                   <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -558,16 +559,16 @@ export default function LandingPage() {
         <MotionText delay={3300} className="text-center">
           <div className="max-w-2xl mx-auto glass-card rounded-3xl p-12 border-glow-pulse">
             <h2 className="text-3xl md:text-4xl font-bold text-[#f5f5f5] mb-4">
-              Ready to <span className="text-gold-gradient">level up</span>?
+              {t.landing.readyToLevelUp}
             </h2>
             <p className="text-[#707070] mb-8 text-lg">
-              Join thousands of high-performers who track their habits with AXS.
+              {t.landing.joinThousands}
             </p>
             <Link
               href="/register"
               className="btn-luxury px-10 py-4 rounded-xl text-lg font-semibold inline-block"
             >
-              Start Tracking Now
+              {t.landing.startTracking}
             </Link>
           </div>
         </MotionText>
@@ -577,7 +578,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-[#1c1c1c] py-8 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[#505050] text-sm">
           <span>AXS Tracker</span>
-          <span>Premium Habit Tracking</span>
+          <span>{t.landing.premiumHabitTracking}</span>
         </div>
       </footer>
 

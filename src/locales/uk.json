@@ -110,7 +110,18 @@
     "showArchived": "ПОКАЗАТИ АРХIВ",
     "hideArchived": "СХОВАТИ АРХIВ",
     "noHabitsYet": "Немає звичок. Додайте першу вище.",
-    "taskPlaceholder": "Назва завдання..."
+    "taskPlaceholder": "Назва завдання...",
+    "completed": "виконано",
+    "missed": "пропущено",
+    "doneSoFar": "виконано",
+    "habitUpdated": "Звичку оновлено",
+    "habitsAdded": "звичок додано",
+    "allHabitsAdded": "Всi звички вже додано",
+    "createNewInLibrary": "Створiть новi звички в бiблiотецi",
+    "selectHabitsToAdd": "Оберiть звички",
+    "addCount": "Додати {count}",
+    "cumulativeProgress": "НАКОПИЧЕНИЙ ПРОГРЕС",
+    "ratio": "Коеф."
   },
   "dashboard": {
     "title": "ПАНЕЛЬ ЗВИЧОК",
@@ -128,7 +139,8 @@
     "activeDays": "Активних днiв",
     "bestStreak": "Найкраща серiя",
     "miniHeatmap": "МIНI ТЕПЛОВА КАРТА",
-    "dayIntensity": "Iнтенсивнiсть дня (виконання)"
+    "dayIntensity": "Iнтенсивнiсть дня (виконання)",
+    "cumulativeProgress": "НАКОПИЧЕНИЙ ПРОГРЕС"
   },
   "monthly": {
     "title": "МIСЯЧНА СIТКА",
@@ -152,7 +164,16 @@
     "howItWorks": "ЯК ЦЕ ПРАЦЮЕ",
     "step1": "Бiблiотека — це ваш список звичок. Додавання звички сюди не запускае її вiдстеження.",
     "step2": "Використовуйте \"Додати до поточного мiсяця\", щоб включити звичку в сiтку мiсяця.",
-    "step3": "Архiвуйте звички, якi бiльше не хочете бачити, зберiгаючи їх iсторiю."
+    "step3": "Архiвуйте звички, якi бiльше не хочете бачити, зберiгаючи їх iсторiю.",
+    "editHabit": "Редагувати звичку",
+    "name": "Назва",
+    "emoji": "Емодзi",
+    "category": "Категорiя",
+    "categoryHealth": "Здоров'я",
+    "categoryProductivity": "Продуктивнiсть",
+    "categoryGrowth": "Розвиток",
+    "categoryMindfulness": "Усвiдомленiсть",
+    "categoryFinance": "Фiнанси"
   },
   "planner": {
     "title": "ЩОДЕННI ЗАВДАННЯ",
@@ -177,7 +198,46 @@
       "fri": "П",
       "sat": "С",
       "sun": "Н"
-    }
+    },
+    "today": "СЬОГОДНI",
+    "motivation100": "Iдеальний день! Всi завдання виконано.",
+    "motivation75": "Чудова робота! Майже все зроблено.",
+    "motivation50": "Хороший прогрес. Продовжуй набирати оберти.",
+    "motivationLow": "Кожен крок важливий. Завтра новий шанс.",
+    "motivationZero": "Пропущено. Використай це як мотивацiю.",
+    "motivationFuture": "Плануй наперед — додай завдання.",
+    "motivationNoTasks": "На цей день завдання не заплановано.",
+    "noTasks": "Немає завдань"
+  },
+  "landing": {
+    "luxury": "ЛЮКС",
+    "signIn": "Увiйти",
+    "getStarted": "Почати",
+    "trackYour": "Вiдстежуй",
+    "habits": "Звички",
+    "improveYour": "Покращуй",
+    "productivity": "Продуктивнiсть",
+    "heroDesc": "Красивi iндикатори. Прогрес у реальному часi. Премiум досвiд, який тримає вас у русi — щодня.",
+    "startFree": "Почати безкоштовно",
+    "whyAxs": "Чому AXS?",
+    "visualProgress": "Вiзуальний прогрес",
+    "visualProgressDesc": "Вражаючi iндикатори i графiки — вiдстеження, яке мотивує.",
+    "dailyRituals": "Щоденнi ритуали",
+    "dailyRitualsDesc": "Будуйте потужнi рутини з розумними нагадуваннями та вiдстеженням серiй.",
+    "premiumDesign": "Премiум дизайн",
+    "premiumDesignDesc": "Темний люксовий iнтерфейс iз золотими акцентами. Кожен пiксель створено для елегантностi.",
+    "readyToLevelUp": "Готовi прокачатися?",
+    "joinThousands": "Приєднуйтесь до тисяч людей, якi вiдстежують звички з AXS.",
+    "startTracking": "Почати вiдстеження",
+    "premiumHabitTracking": "Премiум вiдстеження звичок"
+  },
+  "seedHabits": {
+    "workout": "Тренування / Активнiсть",
+    "coldShower": "Контрастний душ / Загартування",
+    "reading": "Читання / Навчання (30 хвилин)",
+    "planning": "Планування дня з вечора",
+    "sleep": "Норма сну (7-8 годин)",
+    "wakeUp": "Пiдйом о 5:00"
   },
   "languages": {
     "en": "Англiйська",

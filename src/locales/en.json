@@ -110,7 +110,18 @@
     "showArchived": "SHOW ARCHIVED",
     "hideArchived": "HIDE ARCHIVED",
     "noHabitsYet": "No habits yet. Add your first habit above.",
-    "taskPlaceholder": "Task name..."
+    "taskPlaceholder": "Task name...",
+    "completed": "completed",
+    "missed": "missed",
+    "doneSoFar": "done so far",
+    "habitUpdated": "Habit updated",
+    "habitsAdded": "habits added",
+    "allHabitsAdded": "All habits already added",
+    "createNewInLibrary": "Create new habits in the library",
+    "selectHabitsToAdd": "Select habits to add",
+    "addCount": "Add {count}",
+    "cumulativeProgress": "CUMULATIVE PROGRESS",
+    "ratio": "Ratio"
   },
   "dashboard": {
     "title": "HABIT DASHBOARD",
@@ -128,7 +139,8 @@
     "activeDays": "Active days",
     "bestStreak": "Best streak",
     "miniHeatmap": "MINI HEATMAP",
-    "dayIntensity": "Day intensity (completion)"
+    "dayIntensity": "Day intensity (completion)",
+    "cumulativeProgress": "CUMULATIVE PROGRESS"
   },
   "monthly": {
     "title": "MONTHLY GRID",
@@ -152,7 +164,16 @@
     "howItWorks": "HOW IT WORKS",
     "step1": "The library is your list of habits. Adding a habit here does not start tracking it.",
     "step2": "Use \"Add to current month\" to include a habit in this month's grid.",
-    "step3": "Archive habits you no longer want to see, but keep their history."
+    "step3": "Archive habits you no longer want to see, but keep their history.",
+    "editHabit": "Edit Habit",
+    "name": "Name",
+    "emoji": "Emoji",
+    "category": "Category",
+    "categoryHealth": "Health",
+    "categoryProductivity": "Productivity",
+    "categoryGrowth": "Growth",
+    "categoryMindfulness": "Mindfulness",
+    "categoryFinance": "Finance"
   },
   "planner": {
     "title": "DAILY TASKS",
@@ -177,7 +198,46 @@
       "fri": "F",
       "sat": "S",
       "sun": "S"
-    }
+    },
+    "today": "TODAY",
+    "motivation100": "Perfect day! Every task completed.",
+    "motivation75": "Great effort! Almost everything done.",
+    "motivation50": "Solid progress. Keep building momentum.",
+    "motivationLow": "Every step counts. Tomorrow is a new chance.",
+    "motivationZero": "Missed this one. Use it as fuel for today.",
+    "motivationFuture": "Plan ahead — add tasks for this day.",
+    "motivationNoTasks": "No tasks were planned for this day.",
+    "noTasks": "No tasks"
+  },
+  "landing": {
+    "luxury": "LUXURY",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "trackYour": "Track Your",
+    "habits": "Habits",
+    "improveYour": "Improve Your",
+    "productivity": "Productivity",
+    "heroDesc": "Beautiful gauges. Real-time progress. A premium experience designed to keep you moving forward — every single day.",
+    "startFree": "Start Free",
+    "whyAxs": "Why AXS?",
+    "visualProgress": "Visual Progress",
+    "visualProgressDesc": "Stunning gauges and charts that make tracking feel rewarding, not tedious.",
+    "dailyRituals": "Daily Rituals",
+    "dailyRitualsDesc": "Build powerful routines with smart reminders and streak tracking.",
+    "premiumDesign": "Premium Design",
+    "premiumDesignDesc": "Dark luxury interface with gold accents. Every pixel crafted for elegance.",
+    "readyToLevelUp": "Ready to level up?",
+    "joinThousands": "Join thousands of high-performers who track their habits with AXS.",
+    "startTracking": "Start Tracking Now",
+    "premiumHabitTracking": "Premium Habit Tracking"
+  },
+  "seedHabits": {
+    "workout": "Workout / Activity",
+    "coldShower": "Contrast Shower / Cold Exposure",
+    "reading": "Reading / Learning (30 min)",
+    "planning": "Evening Day Planning",
+    "sleep": "Sleep Norm (7-8 hours)",
+    "wakeUp": "Wake Up at 5:00"
   },
   "languages": {
     "en": "English",

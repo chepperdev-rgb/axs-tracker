@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle, Pencil } from 'lucide-react'
 import {
   useTasks,
   getWeekStart,
@@ -27,6 +27,7 @@ export default function PlannerPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const escapePressedRef = useRef(false)
   const [dayPopup, setDayPopup] = useState<{ date: string; dayName: string } | null>(null)
+  const [editingTask, setEditingTask] = useState<{ id: string; title: string } | null>(null)
   const todayCardRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -137,6 +138,24 @@ export default function PlannerPage() {
   }
 
   const handleDeleteTask = (taskId: string) => deleteTask(taskId)
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask({ id: task.id, title: task.title })
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingTask || !editingTask.title.trim()) {
+      setEditingTask(null)
+      return
+    }
+    updateTask({ id: editingTask.id, title: editingTask.title.trim() })
+    setEditingTask(null)
+  }
+
+  const handleEditKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSaveEdit()
+    else if (e.key === 'Escape') setEditingTask(null)
+  }
 
   const circumference = 2 * Math.PI * 40
   const weeklyOffset = circumference - (weekStats.percentage / 100) * circumference
@@ -259,7 +278,7 @@ export default function PlannerPage() {
                         `}>
                           <span className="sm:hidden">{weekDaysShort[index]}</span>
                           <span className="hidden sm:inline">{day}</span>
-                          {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">TODAY</span>}
+                          {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">{t.planner.today}</span>}
                         </span>
                         <span className="text-xs sm:text-sm text-[#707070] font-mono">
                           {completedCount}/{totalCount}
@@ -286,9 +305,15 @@ export default function PlannerPage() {
                           if (isPastDate) {
                             return (
                               <div key={task.id} className="flex items-start gap-2 p-2 rounded-lg">
-                                <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-[#3a3a3a] flex items-center justify-center flex-shrink-0 bg-[#1c1c1c]">
+                                <div
+                                  className={`mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                    task.completed
+                                      ? 'border-[#d4af37]/30 bg-[#d4af37]/15'
+                                      : 'border-[#3a3a3a] bg-[#1c1c1c]'
+                                  }`}
+                                >
                                   {task.completed ? (
-                                    <Check className="w-3 h-3 text-[#505050]" />
+                                    <Check className="w-3 h-3 text-[#d4af37]/50" />
                                   ) : (
                                     <XIcon className="w-3 h-3 text-[#505050]" />
                                   )}
@@ -303,34 +328,83 @@ export default function PlannerPage() {
                           if (isTodayDate) {
                             return (
                               <div key={task.id} className="group flex items-start gap-2 p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)] transition-colors">
-                                <Checkbox
-                                  checked={task.completed}
-                                  onCheckedChange={() => handleToggleComplete(task)}
-                                  className="mt-0.5 border-[#2a2a2a] w-4 h-4 sm:w-5 sm:h-5 data-[state=checked]:bg-[#d4af37] data-[state=checked]:border-[#d4af37]"
-                                />
-                                <span className={`text-xs sm:text-sm leading-relaxed flex-1 ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}`}>
-                                  {task.title}
-                                </span>
+                                {/* Gold ball checkbox */}
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }}
-                                  className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
+                                  onClick={(e) => { e.stopPropagation(); handleToggleComplete(task) }}
+                                  className="mt-0.5 flex-shrink-0"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <div
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      task.completed
+                                        ? 'border-[#d4af37] bg-[#d4af37]'
+                                        : 'border-[#3a3a3a] hover:border-[#d4af37]/50'
+                                    }`}
+                                    style={task.completed ? {
+                                      boxShadow: '0 0 8px rgba(212,175,55,0.5), 0 0 16px rgba(212,175,55,0.2)',
+                                    } : undefined}
+                                  >
+                                    {task.completed && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#0a0a0a] stroke-[3]" />}
+                                  </div>
                                 </button>
+                                {/* Editable title */}
+                                {editingTask?.id === task.id ? (
+                                  <Input
+                                    autoFocus
+                                    value={editingTask.title}
+                                    onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                                    onKeyDown={handleEditKeyDown}
+                                    onBlur={handleSaveEdit}
+                                    className="h-6 text-xs sm:text-sm bg-transparent border-[rgba(212,175,55,0.3)] focus:border-[#d4af37] px-2 flex-1"
+                                  />
+                                ) : (
+                                  <span
+                                    className={`text-xs sm:text-sm leading-relaxed flex-1 cursor-pointer ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}`}
+                                    onClick={(e) => { e.stopPropagation(); handleEditTask(task) }}
+                                  >
+                                    {task.title}
+                                  </span>
+                                )}
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditTask(task) }} className="text-[#707070] hover:text-[#d4af37]">
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }} className="text-[#707070] hover:text-red-400">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </div>
                             )
                           }
 
+                          // Future: gold outline ball, editable
                           return (
                             <div key={task.id} className="group flex items-start gap-2 p-2 rounded-lg">
-                              <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-[#2a2a2a] flex-shrink-0" />
-                              <span className="text-xs sm:text-sm leading-relaxed flex-1 text-[#707070]">{task.title}</span>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }}
-                                className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-[#2a2a2a] flex-shrink-0" />
+                              {editingTask?.id === task.id ? (
+                                <Input
+                                  autoFocus
+                                  value={editingTask.title}
+                                  onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                                  onKeyDown={handleEditKeyDown}
+                                  onBlur={handleSaveEdit}
+                                  className="h-6 text-xs sm:text-sm bg-transparent border-[rgba(212,175,55,0.3)] focus:border-[#d4af37] px-2 flex-1"
+                                />
+                              ) : (
+                                <span
+                                  className="text-xs sm:text-sm leading-relaxed flex-1 text-[#707070] cursor-pointer"
+                                  onClick={(e) => { e.stopPropagation(); handleEditTask(task) }}
+                                >
+                                  {task.title}
+                                </span>
+                              )}
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button onClick={(e) => { e.stopPropagation(); handleEditTask(task) }} className="text-[#707070] hover:text-[#d4af37]">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }} className="text-[#707070] hover:text-red-400">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           )
                         })
@@ -344,7 +418,7 @@ export default function PlannerPage() {
                             onChange={(e) => setNewTaskTitle(e.target.value)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onBlur={() => handleBlur(index)}
-                            placeholder="Task name..."
+                            placeholder={t.common.taskPlaceholder}
                             disabled={isCreating}
                             className="h-8 text-xs sm:text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-3"
                           />
@@ -384,16 +458,16 @@ export default function PlannerPage() {
         const isFutureDay = isFuture(dayPopup.date)
 
         const motivation = pct === 100
-          ? 'Perfect day! Every task completed.'
+          ? t.planner.motivation100
           : pct >= 75
-          ? 'Great effort! Almost everything done.'
+          ? t.planner.motivation75
           : pct >= 50
-          ? 'Solid progress. Keep building momentum.'
+          ? t.planner.motivation50
           : pct > 0
-          ? 'Every step counts. Tomorrow is a new chance.'
+          ? t.planner.motivationLow
           : total === 0
-          ? (isFutureDay ? 'Plan ahead — add tasks for this day.' : 'No tasks were planned for this day.')
-          : 'Missed this one. Use it as fuel for today.'
+          ? (isFutureDay ? t.planner.motivationFuture : t.planner.motivationNoTasks)
+          : t.planner.motivationZero
 
         const MotivIcon = pct === 100 ? Trophy : pct >= 50 ? TrendingUp : AlertTriangle
         const motivColor = pct >= 75 ? '#d4af37' : pct >= 50 ? '#a0a0a0' : '#707070'
@@ -429,7 +503,7 @@ export default function PlannerPage() {
                 <div className="flex items-center gap-2">
                   {isTodayDay && (
                     <span className="px-2 py-0.5 rounded-full bg-[rgba(212,175,55,0.15)] text-[#d4af37] text-[10px] font-semibold uppercase tracking-wider border border-[rgba(212,175,55,0.3)]">
-                      Today
+                      {t.common.today}
                     </span>
                   )}
                   <button
@@ -462,9 +536,9 @@ export default function PlannerPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-[#f5f5f5] font-medium">{done}/{total} tasks</p>
+                  <p className="text-sm text-[#f5f5f5] font-medium">{done}/{total} {t.common.tasks}</p>
                   <p className="text-xs text-[#707070] mt-0.5">
-                    {isPastDay ? `${done} completed · ${total - done} missed` : `${done} done so far`}
+                    {isPastDay ? `${done} ${t.common.completed} · ${total - done} ${t.common.missed}` : `${done} ${t.common.doneSoFar}`}
                   </p>
                 </div>
               </div>
@@ -472,7 +546,7 @@ export default function PlannerPage() {
               {/* Task list with staggered animation */}
               <div className="px-5 py-3 max-h-[250px] overflow-y-auto space-y-1">
                 {popupTasks.length === 0 ? (
-                  <p className="text-sm text-[#505050] text-center py-6">No tasks</p>
+                  <p className="text-sm text-[#505050] text-center py-6">{t.planner.noTasks}</p>
                 ) : (
                   popupTasks.map((task, i) => (
                     <div
@@ -578,7 +652,7 @@ export default function PlannerPage() {
 
           <Card className="p-3 sm:p-5">
             <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4 text-center">
-              {t.common.today.toUpperCase()}
+              {t.planner.today}
             </h3>
             <div className="flex items-center justify-center">
               <div className="relative w-20 h-20 sm:w-32 sm:h-32">

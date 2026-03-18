@@ -148,11 +148,11 @@ export default function MonthlyPage() {
       for (const id of selectedHabitIds) {
         await addToMonth({ id, year: selectedYear, month: selectedMonth })
       }
-      toast.success(`${selectedHabitIds.size} habit${selectedHabitIds.size > 1 ? 's' : ''} added`)
+      toast.success(`${selectedHabitIds.size} ${t.common.habitsAdded}`)
       setSelectedHabitIds(new Set())
       setIsAddModalOpen(false)
     } catch (error) {
-      toast.error('Failed to add habits')
+      toast.error(t.messages.failedAddToMonth)
     } finally {
       setIsAdding(false)
     }
@@ -309,7 +309,7 @@ export default function MonthlyPage() {
           <div className="overflow-x-auto">
             <div className="min-w-[500px]">
               {/* Grid Header */}
-              <div className="grid grid-cols-[minmax(120px,150px)_repeat(7,1fr)] sm:grid-cols-[200px_repeat(7,1fr)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+              <div className="grid grid-cols-[minmax(160px,auto)_repeat(7,40px)] sm:grid-cols-[minmax(200px,auto)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
                 <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#707070]">
                   {t.monthly.habit}
                 </div>
@@ -330,7 +330,7 @@ export default function MonthlyPage() {
               {habitsInMonth.map((habit) => (
                 <div
                   key={habit.id}
-                  className="grid grid-cols-[minmax(120px,150px)_repeat(7,1fr)] sm:grid-cols-[200px_repeat(7,1fr)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
+                  className="grid grid-cols-[minmax(160px,auto)_repeat(7,40px)] sm:grid-cols-[minmax(200px,auto)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
                 >
                   {/* Habit Name */}
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -339,7 +339,7 @@ export default function MonthlyPage() {
                     ) : (
                       <Star className="w-3 h-3 sm:w-4 sm:h-4 text-[#d4af37] flex-shrink-0" />
                     )}
-                    <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium truncate">
+                    <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium">
                       {habit.name}
                     </span>
                   </div>
@@ -490,8 +490,8 @@ export default function MonthlyPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {habitsNotInMonth.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-[#707070] text-sm">All habits already added</p>
-                  <p className="text-[#505050] text-xs mt-1">Create new habits in the library</p>
+                  <p className="text-[#707070] text-sm">{t.common.allHabitsAdded}</p>
+                  <p className="text-[#505050] text-xs mt-1">{t.common.createNewInLibrary}</p>
                 </div>
               ) : (
                 habitsNotInMonth.map((habit) => {
@@ -548,9 +548,9 @@ export default function MonthlyPage() {
                   {isAdding ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : selectedHabitIds.size === 0 ? (
-                    'Select habits to add'
+                    t.common.selectHabitsToAdd
                   ) : (
-                    `Add ${selectedHabitIds.size} habit${selectedHabitIds.size > 1 ? 's' : ''}`
+                    t.common.addCount.replace('{count}', String(selectedHabitIds.size))
                   )}
                 </Button>
               </div>

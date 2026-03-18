@@ -16,6 +16,7 @@ import {
 import { useHabits, type HabitWithMonthStatus } from '@/hooks/use-habits'
 import { toast } from 'sonner'
 import { useTranslations } from '@/providers/i18n-provider'
+import type { Messages } from '@/lib/i18n'
 
 // ─── Edit Modal ─────────────────────────────────────────────────────
 function EditHabitModal({
@@ -23,20 +24,30 @@ function EditHabitModal({
   onSave,
   onClose,
   isSaving,
+  t,
 }: {
   habit: HabitWithMonthStatus
   onSave: (data: { name: string; emoji: string; category: string }) => void
   onClose: () => void
   isSaving: boolean
+  t: Messages
 }) {
   const [name, setName] = useState(habit.name)
   const [emoji, setEmoji] = useState(habit.emoji || '')
   const [category, setCategory] = useState(habit.category || '')
 
+  const categoryLabels: Record<string, string> = {
+    health: t.habits.categoryHealth,
+    productivity: t.habits.categoryProductivity,
+    growth: t.habits.categoryGrowth,
+    mindfulness: t.habits.categoryMindfulness,
+    finance: t.habits.categoryFinance,
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {
-      toast.error('Habit name is required')
+      toast.error(t.messages.habitNameRequired)
       return
     }
     onSave({ name: name.trim(), emoji, category })
@@ -52,7 +63,7 @@ function EditHabitModal({
       {/* Modal */}
       <div className="relative w-full max-w-md glass-card rounded-2xl p-6 border border-[rgba(212,175,55,0.2)]">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-semibold text-[#f5f5f5]">Edit Habit</h3>
+          <h3 className="text-lg font-semibold text-[#f5f5f5]">{t.habits.editHabit}</h3>
           <button
             onClick={onClose}
             className="text-[#707070] hover:text-[#f5f5f5] transition-colors"
@@ -63,7 +74,7 @@ function EditHabitModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Name</Label>
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">{t.habits.name}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -74,7 +85,7 @@ function EditHabitModal({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Emoji</Label>
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">{t.habits.emoji}</Label>
             <Input
               value={emoji}
               onChange={(e) => setEmoji(e.target.value)}
@@ -85,7 +96,7 @@ function EditHabitModal({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">Category</Label>
+            <Label className="text-[#a0a0a0] text-xs uppercase tracking-wider">{t.habits.category}</Label>
             <div className="flex flex-wrap gap-2">
               {['health', 'productivity', 'growth', 'mindfulness', 'finance'].map((cat) => (
                 <button
@@ -98,7 +109,7 @@ function EditHabitModal({
                       : 'border-[#2a2a2a] text-[#707070] hover:border-[#505050]'
                   }`}
                 >
-                  {cat}
+                  {categoryLabels[cat] ?? cat}
                 </button>
               ))}
             </div>
@@ -112,7 +123,7 @@ function EditHabitModal({
               className="flex-1 text-[#a0a0a0] hover:text-[#f5f5f5]"
               disabled={isSaving}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
@@ -123,7 +134,7 @@ function EditHabitModal({
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                'Save'
+                t.common.save
               )}
             </Button>
           </div>
@@ -165,16 +176,16 @@ export default function HabitsPage() {
   const handleCreateHabit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newHabit.trim()) {
-      toast.error('Please enter a habit name')
+      toast.error(t.messages.habitNameRequired)
       return
     }
 
     try {
       await createHabit({ name: newHabit.trim() })
       setNewHabit('')
-      toast.success('Habit added to library')
+      toast.success(t.messages.habitAdded)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create habit')
+      toast.error(err instanceof Error ? err.message : t.messages.failedCreateHabit)
     }
   }
 
@@ -188,45 +199,45 @@ export default function HabitsPage() {
         category: data.category || null,
       })
       setEditingHabit(null)
-      toast.success('Habit updated')
+      toast.success(t.common.habitUpdated)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update habit')
+      toast.error(err instanceof Error ? err.message : t.messages.failedCreateHabit)
     }
   }
 
   const handleAddToMonth = async (habitId: string) => {
     try {
       await addToMonth({ id: habitId })
-      toast.success('Habit added to current month')
+      toast.success(t.messages.habitAddedToMonth)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add habit to month')
+      toast.error(err instanceof Error ? err.message : t.messages.failedAddToMonth)
     }
   }
 
   const handleRemoveFromMonth = async (habitId: string) => {
     try {
       await removeFromMonth({ id: habitId })
-      toast.success('Habit removed from current month')
+      toast.success(t.messages.habitRemovedFromMonth)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to remove habit from month')
+      toast.error(err instanceof Error ? err.message : t.messages.failedRemoveFromMonth)
     }
   }
 
   const handleArchive = async (habitId: string, isCurrentlyArchived: boolean) => {
     try {
       await archiveHabit(habitId)
-      toast.success(isCurrentlyArchived ? 'Habit restored' : 'Habit archived')
+      toast.success(isCurrentlyArchived ? t.messages.habitRestored : t.messages.habitArchived)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to archive habit')
+      toast.error(err instanceof Error ? err.message : t.messages.failedArchive)
     }
   }
 
   const handleDelete = async (habitId: string) => {
     try {
       await deleteHabit(habitId)
-      toast.success('Habit deleted')
+      toast.success(t.messages.habitDeleted)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete habit')
+      toast.error(err instanceof Error ? err.message : t.messages.failedDelete)
     }
   }
 
@@ -237,10 +248,10 @@ export default function HabitsPage() {
       <div className="space-y-4 sm:space-y-6">
         <Card className="p-6 text-center">
           <p className="text-[#e74c3c] mb-4">
-            {error instanceof Error ? error.message : 'Failed to load habits'}
+            {error instanceof Error ? error.message : t.messages.failedLoadHabits}
           </p>
           <Button variant="gold-outline" onClick={() => window.location.reload()}>
-            Try Again
+            {t.common.tryAgain}
           </Button>
         </Card>
       </div>
@@ -256,6 +267,7 @@ export default function HabitsPage() {
           onSave={handleEditSave}
           onClose={() => setEditingHabit(null)}
           isSaving={isUpdating}
+          t={t}
         />
       )}
 
@@ -323,7 +335,7 @@ export default function HabitsPage() {
         <div className="space-y-2">
           {activeHabits.length === 0 && !isLoading && (
             <Card className="p-6 text-center">
-              <p className="text-[#707070]">No habits yet. Add your first habit above.</p>
+              <p className="text-[#707070]">{t.common.noHabitsYet}</p>
             </Card>
           )}
 
@@ -396,7 +408,7 @@ export default function HabitsPage() {
                       onClick={() => setEditingHabit(habit)}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
-                      Edit
+                      {t.common.edit}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-[#2a2a2a]" />
                     <DropdownMenuItem
@@ -429,7 +441,7 @@ export default function HabitsPage() {
             className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#707070] hover:text-[#a0a0a0] transition-colors mb-3 flex items-center gap-2"
           >
             <Archive className="w-3 h-3" />
-            {showArchived ? 'HIDE ARCHIVED' : `SHOW ARCHIVED (${archivedHabits.length})`}
+            {showArchived ? t.common.hideArchived : `${t.common.showArchived} (${archivedHabits.length})`}
           </button>
 
           {showArchived && archivedHabits.length > 0 && (
@@ -457,7 +469,7 @@ export default function HabitsPage() {
                       disabled={isOperating}
                     >
                       <ArchiveRestore className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Restore</span>
+                      <span className="hidden sm:inline">{t.common.restore}</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -467,7 +479,7 @@ export default function HabitsPage() {
                       disabled={isOperating}
                     >
                       <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Delete</span>
+                      <span className="hidden sm:inline">{t.common.delete}</span>
                     </Button>
                   </div>
                 </Card>

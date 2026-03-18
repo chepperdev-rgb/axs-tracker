@@ -3,12 +3,12 @@ import { habits, monthlyPlans } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 const DEFAULT_HABITS = [
-  { name: 'Тренировка / Активность', emoji: '🏋️', category: 'health', frequency: 'daily' },
-  { name: 'Контрастный душ / Закаливание', emoji: '🚿', category: 'health', frequency: 'daily' },
-  { name: 'Чтение / Обучение (30 минут)', emoji: '📚', category: 'growth', frequency: 'daily' },
-  { name: 'Планирование дня с вечера', emoji: '📝', category: 'productivity', frequency: 'daily' },
-  { name: 'Норма сна (7-8 часов)', emoji: '😴', category: 'health', frequency: 'daily' },
-  { name: 'Подъём в 5:00', emoji: '⏰', category: 'productivity', frequency: 'daily' },
+  { name: 'Workout / Activity', emoji: '🏋️', category: 'health', frequency: 'daily' },
+  { name: 'Contrast Shower / Cold Exposure', emoji: '🚿', category: 'health', frequency: 'daily' },
+  { name: 'Reading / Learning (30 min)', emoji: '📚', category: 'growth', frequency: 'daily' },
+  { name: 'Evening Day Planning', emoji: '📝', category: 'productivity', frequency: 'daily' },
+  { name: 'Sleep Norm (7-8 hours)', emoji: '😴', category: 'health', frequency: 'daily' },
+  { name: 'Wake Up at 5:00', emoji: '⏰', category: 'productivity', frequency: 'daily' },
 ] as const
 
 /**
