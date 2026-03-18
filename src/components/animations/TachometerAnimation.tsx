@@ -275,21 +275,6 @@ export default function TachometerAnimation({ onComplete }: TachometerAnimationP
           />
         </svg>
 
-        {/* Percentage display */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center mt-16">
-          <span
-            className="text-5xl font-bold tabular-nums"
-            style={{
-              color: '#d4af37',
-              textShadow: '0 0 20px rgba(212,175,55,0.5)'
-            }}
-          >
-            {Math.round(progress)}%
-          </span>
-          <span className="text-sm text-[#a0a0a0] mt-1 tracking-widest uppercase">
-            {showSuccess ? 'Complete' : 'Initializing'}
-          </span>
-        </div>
       </div>
 
       {/* Success message */}
