@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Check, Star, Plus, Loader2, X } from 'lucide-react'
+import { Check, Star, Plus, Loader2, X as XIcon } from 'lucide-react'
 import { useTranslations } from '@/providers/i18n-provider'
 import { CircularGauge } from '@/components/ui/tachometer-gauge'
 import {
@@ -329,7 +329,6 @@ export default function MonthlyPage() {
                   {/* Day Checkboxes */}
                   {activeWeekData.days.map((day, dayIndex) => {
                     if (day.dayOfMonth === 0) {
-                      // Empty cell for days outside the month
                       return (
                         <div key={dayIndex} className="flex justify-center">
                           <div className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -339,7 +338,39 @@ export default function MonthlyPage() {
 
                     const dateStr = formatDate(selectedYear, selectedMonth, day.dayOfMonth)
                     const completed = isCompleted(habit.id, dateStr)
+                    const cellDate = new Date(selectedYear, selectedMonth - 1, day.dayOfMonth)
+                    const todayDate = new Date()
+                    todayDate.setHours(0, 0, 0, 0)
+                    cellDate.setHours(0, 0, 0, 0)
+                    const isCellToday = cellDate.getTime() === todayDate.getTime()
+                    const isCellPast = cellDate.getTime() < todayDate.getTime()
+                    const isCellFuture = cellDate.getTime() > todayDate.getTime()
 
+                    // Past: gray marks, not interactive
+                    if (isCellPast) {
+                      return (
+                        <div key={dayIndex} className="flex justify-center">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#1c1c1c] bg-[#1c1c1c] flex items-center justify-center">
+                            {completed ? (
+                              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-[#505050]" />
+                            ) : (
+                              <XIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#3a3a3a]" />
+                            )}
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    // Future: locked, not interactive
+                    if (isCellFuture) {
+                      return (
+                        <div key={dayIndex} className="flex justify-center">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#1c1c1c] flex items-center justify-center" />
+                        </div>
+                      )
+                    }
+
+                    // Today: interactive
                     return (
                       <div key={dayIndex} className="flex justify-center">
                         <button
@@ -350,7 +381,7 @@ export default function MonthlyPage() {
                             transition-all duration-200 active:scale-95 disabled:opacity-50
                             ${completed
                               ? 'btn-luxury border-transparent shadow-[0_0_15px_rgba(212,175,55,0.5)]'
-                              : 'bg-transparent border-[#2a2a2a] hover:border-[rgba(212,175,55,0.3)] hover:bg-[rgba(212,175,55,0.05)]'
+                              : 'bg-transparent border-[#d4af37]/30 hover:border-[#d4af37] hover:bg-[rgba(212,175,55,0.05)]'
                             }
                           `}
                         >
@@ -425,7 +456,7 @@ export default function MonthlyPage() {
                 onClick={() => { setIsAddModalOpen(false); setSelectedHabitIds(new Set()) }}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
               >
-                <X className="w-5 h-5" />
+                <XIcon className="w-5 h-5" />
               </button>
             </div>
 

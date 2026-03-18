@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle } from 'lucide-react'
 import {
   useTasks,
   getWeekStart,
@@ -26,6 +26,7 @@ export default function PlannerPage() {
   const [addingTaskForDay, setAddingTaskForDay] = useState<number | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const escapePressedRef = useRef(false)
+  const [dayPopup, setDayPopup] = useState<{ date: string; dayName: string } | null>(null)
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, isCreating } =
     useTasks(weekStart)
@@ -232,10 +233,11 @@ export default function PlannerPage() {
               return (
                 <Card
                   key={day}
+                  onClick={isPastDate ? () => setDayPopup({ date, dayName: day }) : undefined}
                   className={`
                     overflow-hidden p-0
                     ${isTodayDate ? 'border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' : ''}
-                    ${isPastDate ? 'opacity-60' : ''}
+                    ${isPastDate ? 'opacity-60 cursor-pointer hover:opacity-80 transition-opacity' : ''}
                   `}
                 >
                   {/* Day Header */}
@@ -394,6 +396,113 @@ export default function PlannerPage() {
           </div>
         </div>
       )}
+
+      {/* Past Day Popup */}
+      {dayPopup && (() => {
+        const popupTasks = tasksByDate[dayPopup.date] || []
+        const completedTasks = popupTasks.filter(t => t.completed)
+        const incompleteTasks = popupTasks.filter(t => !t.completed)
+        const total = popupTasks.length
+        const done = completedTasks.length
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+        // Motivational phrase based on completion
+        const motivation = pct === 100
+          ? 'Perfect day! Every task completed.'
+          : pct >= 75
+          ? 'Great effort! Almost everything done.'
+          : pct >= 50
+          ? 'Solid progress. Keep building momentum.'
+          : pct > 0
+          ? 'Every step counts. Tomorrow is a new chance.'
+          : total === 0
+          ? 'No tasks were planned for this day.'
+          : 'Missed this one. Use it as fuel for today.'
+
+        const MotivIcon = pct === 100 ? Trophy : pct >= 50 ? TrendingUp : AlertTriangle
+        const motivColor = pct >= 75 ? '#d4af37' : pct >= 50 ? '#a0a0a0' : '#707070'
+
+        // Format date for display
+        const [y, m, d] = dayPopup.date.split('-').map(Number)
+        const displayDate = new Date(y, m - 1, d).toLocaleDateString('en-US', {
+          weekday: 'long', month: 'long', day: 'numeric'
+        })
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setDayPopup(null)} />
+            <div className="relative w-full max-w-sm glass-card rounded-2xl border border-[rgba(212,175,55,0.2)] overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-[rgba(212,175,55,0.1)]">
+                <div>
+                  <h3 className="text-base font-semibold text-[#f5f5f5]">{dayPopup.dayName}</h3>
+                  <p className="text-xs text-[#707070] mt-0.5">{displayDate}</p>
+                </div>
+                <button
+                  onClick={() => setDayPopup(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Stats */}
+              <div className="px-5 py-4 border-b border-[rgba(212,175,55,0.1)] flex items-center gap-4">
+                <div className="relative w-16 h-16">
+                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="40" fill="none"
+                      stroke={pct >= 75 ? '#d4af37' : pct >= 50 ? '#a0a0a0' : '#3a3a3a'}
+                      strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={251.2}
+                      strokeDashoffset={251.2 - (pct / 100) * 251.2}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-sm font-bold font-mono" style={{ color: motivColor }}>{pct}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#f5f5f5] font-medium">{done}/{total} tasks</p>
+                  <p className="text-xs text-[#707070] mt-0.5">{done} completed · {total - done} missed</p>
+                </div>
+              </div>
+
+              {/* Task list */}
+              <div className="px-5 py-3 max-h-[200px] overflow-y-auto space-y-1.5">
+                {popupTasks.length === 0 ? (
+                  <p className="text-sm text-[#505050] text-center py-4">No tasks</p>
+                ) : (
+                  <>
+                    {completedTasks.map(task => (
+                      <div key={task.id} className="flex items-center gap-2 py-1">
+                        <div className="w-4 h-4 rounded bg-[#d4af37]/20 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-[#d4af37]" />
+                        </div>
+                        <span className="text-sm text-[#707070] line-through">{task.title}</span>
+                      </div>
+                    ))}
+                    {incompleteTasks.map(task => (
+                      <div key={task.id} className="flex items-center gap-2 py-1">
+                        <div className="w-4 h-4 rounded bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
+                          <XIcon className="w-3 h-3 text-[#3a3a3a]" />
+                        </div>
+                        <span className="text-sm text-[#505050]">{task.title}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              {/* Motivation */}
+              <div className="px-5 py-4 border-t border-[rgba(212,175,55,0.1)] flex items-center gap-3">
+                <MotivIcon className="w-5 h-5 flex-shrink-0" style={{ color: motivColor }} />
+                <p className="text-sm" style={{ color: motivColor }}>{motivation}</p>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Weekly Analytics */}
       <div className="space-y-3 sm:space-y-4">
