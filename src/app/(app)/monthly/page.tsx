@@ -407,7 +407,7 @@ export default function MonthlyPage() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setIsAddModalOpen(false)}
+            onClick={() => { setIsAddModalOpen(false); setSelectedHabitIds(new Set()) }}
           />
           {/* Modal */}
           <div className="relative w-full sm:max-w-md glass-card sm:rounded-2xl rounded-t-2xl border border-[rgba(212,175,55,0.2)] flex flex-col max-h-[85vh] sm:max-h-[70vh]">
@@ -422,7 +422,7 @@ export default function MonthlyPage() {
                 </p>
               </div>
               <button
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => { setIsAddModalOpen(false); setSelectedHabitIds(new Set()) }}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
               >
                 <X className="w-5 h-5" />

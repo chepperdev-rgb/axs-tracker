@@ -174,19 +174,33 @@ export function useTasks(weekStart: string) {
   }
 }
 
+// Parse YYYY-MM-DD as local date (not UTC!)
+function parseLocalDate(dateString: string): Date {
+  const [y, m, d] = dateString.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+// Format local date as YYYY-MM-DD
+function formatLocalDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 // Utility function to get the Monday of the current week
 export function getWeekStart(date: Date = new Date()): string {
   const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
-  d.setDate(diff)
   d.setHours(0, 0, 0, 0)
-  return d.toISOString().split('T')[0]
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  d.setDate(diff)
+  return formatLocalDate(d)
 }
 
 // Utility function to format week range for display
 export function formatWeekRange(weekStart: string): string {
-  const start = new Date(weekStart)
+  const start = parseLocalDate(weekStart)
   const end = new Date(start)
   end.setDate(end.getDate() + 6)
 
@@ -204,15 +218,15 @@ export function formatWeekRange(weekStart: string): string {
 
 // Utility function to get the date for a specific day of the week
 export function getDateForDay(weekStart: string, dayIndex: number): string {
-  const date = new Date(weekStart)
+  const date = parseLocalDate(weekStart)
   date.setDate(date.getDate() + dayIndex)
-  return date.toISOString().split('T')[0]
+  return formatLocalDate(date)
 }
 
 // Utility function to check if a date is today
 export function isToday(dateString: string): boolean {
   const today = new Date()
-  const date = new Date(dateString)
+  const date = parseLocalDate(dateString)
   return (
     today.getFullYear() === date.getFullYear() &&
     today.getMonth() === date.getMonth() &&
@@ -224,8 +238,7 @@ export function isToday(dateString: string): boolean {
 export function isPast(dateString: string): boolean {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const date = new Date(dateString)
-  date.setHours(0, 0, 0, 0)
+  const date = parseLocalDate(dateString)
   return date.getTime() < today.getTime()
 }
 
@@ -233,7 +246,6 @@ export function isPast(dateString: string): boolean {
 export function isFuture(dateString: string): boolean {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const date = new Date(dateString)
-  date.setHours(0, 0, 0, 0)
+  const date = parseLocalDate(dateString)
   return date.getTime() > today.getTime()
 }

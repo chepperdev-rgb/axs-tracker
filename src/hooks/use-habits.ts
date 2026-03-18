@@ -28,8 +28,8 @@ interface CreateHabitInput {
 interface UpdateHabitInput {
   id: string
   name?: string
-  emoji?: string
-  category?: string
+  emoji?: string | null
+  category?: string | null
   frequency?: string
   frequencyDays?: number[]
   sortOrder?: number

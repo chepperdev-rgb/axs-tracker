@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, KeyboardEvent } from 'react'
+import { useState, useMemo, useRef, KeyboardEvent } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,7 @@ export default function PlannerPage() {
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [addingTaskForDay, setAddingTaskForDay] = useState<number | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState('')
+  const escapePressedRef = useRef(false)
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, isCreating } =
     useTasks(weekStart)
@@ -61,7 +62,8 @@ export default function PlannerPage() {
 
   // Calculate today stats
   const todayStats = useMemo(() => {
-    const todayDate = new Date().toISOString().split('T')[0]
+    const now = new Date()
+    const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const todayTasks = tasks.filter((t) => {
       const taskDate = typeof t.date === 'string' ? t.date : t.date
       return taskDate === todayDate
@@ -114,9 +116,18 @@ export default function PlannerPage() {
     if (e.key === 'Enter') {
       handleCreateTask(dayIndex)
     } else if (e.key === 'Escape') {
+      escapePressedRef.current = true
       setAddingTaskForDay(null)
       setNewTaskTitle('')
     }
+  }
+
+  const handleBlur = (dayIndex: number) => {
+    if (escapePressedRef.current) {
+      escapePressedRef.current = false
+      return
+    }
+    handleCreateTask(dayIndex)
   }
 
   const handleToggleComplete = (task: Task) => {
@@ -354,7 +365,7 @@ export default function PlannerPage() {
                           value={newTaskTitle}
                           onChange={(e) => setNewTaskTitle(e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, index)}
-                          onBlur={() => handleCreateTask(index)}
+                          onBlur={() => handleBlur(index)}
                           placeholder="Task name..."
                           disabled={isCreating}
                           className="h-6 sm:h-7 text-[10px] sm:text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-2"

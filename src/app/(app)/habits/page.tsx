@@ -184,8 +184,8 @@ export default function HabitsPage() {
       await updateHabit({
         id: editingHabit.id,
         name: data.name,
-        emoji: data.emoji || undefined,
-        category: data.category || undefined,
+        emoji: data.emoji || null,
+        category: data.category || null,
       })
       setEditingHabit(null)
       toast.success('Habit updated')
