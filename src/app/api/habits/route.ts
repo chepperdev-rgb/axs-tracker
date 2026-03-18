@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { habits, monthlyPlans, users } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
+import { seedDefaultHabits } from '@/lib/seed-habits'
 
 // GET /api/habits - List all habits for the current user
 export async function GET(request: Request) {
@@ -16,6 +17,13 @@ export async function GET(request: Request) {
         { status: 401 }
       )
     }
+
+    // Ensure user exists in DB + seed default habits for new users
+    await db
+      .insert(users)
+      .values({ id: user.id, email: user.email! })
+      .onConflictDoNothing()
+    await seedDefaultHabits(user.id)
 
     // Get query params for filtering
     const { searchParams } = new URL(request.url)
