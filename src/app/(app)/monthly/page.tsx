@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check, Star, Plus, Loader2, X as XIcon } from 'lucide-react'
@@ -61,7 +61,6 @@ export default function MonthlyPage() {
   const today = new Date()
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1)
-  const [activeWeek, setActiveWeek] = useState(1)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   // Month string for API
@@ -90,6 +89,25 @@ export default function MonthlyPage() {
   const weeks = useMemo(() => {
     return getWeeksForMonth(selectedYear, selectedMonth)
   }, [selectedYear, selectedMonth])
+
+  // Auto-detect which week today falls in
+  const currentWeekIndex = useMemo(() => {
+    const todayDay = today.getDate()
+    const isCurrentMonth = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1
+    if (!isCurrentMonth) return 1
+    for (let i = 0; i < weeks.length; i++) {
+      const hasToday = weeks[i].days.some(d => d.dayOfMonth === todayDay)
+      if (hasToday) return i + 1
+    }
+    return 1
+  }, [weeks, selectedYear, selectedMonth, today])
+
+  const [activeWeek, setActiveWeek] = useState(currentWeekIndex)
+
+  // Update activeWeek when month/year changes
+  useEffect(() => {
+    setActiveWeek(currentWeekIndex)
+  }, [currentWeekIndex])
 
   // Get days for the active week
   const activeWeekData = weeks[activeWeek - 1] || { days: [] }
@@ -346,31 +364,39 @@ export default function MonthlyPage() {
                     const isCellPast = cellDate.getTime() < todayDate.getTime()
                     const isCellFuture = cellDate.getTime() > todayDate.getTime()
 
-                    // Past: gray marks, not interactive
+                    // Past: gold check if done, red neon dot if missed
                     if (isCellPast) {
                       return (
                         <div key={dayIndex} className="flex justify-center">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#1c1c1c] bg-[#1c1c1c] flex items-center justify-center">
-                            {completed ? (
-                              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-[#505050]" />
-                            ) : (
-                              <XIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#3a3a3a]" />
-                            )}
-                          </div>
+                          {completed ? (
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#d4af37]/40 bg-[rgba(212,175,55,0.1)] flex items-center justify-center">
+                              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-[#d4af37]" />
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#d4af37]/20 flex items-center justify-center">
+                              <div
+                                className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
+                                style={{
+                                  background: 'radial-gradient(circle, #ff4444 0%, #cc0000 70%)',
+                                  boxShadow: '0 0 6px rgba(255,68,68,0.6), 0 0 12px rgba(255,68,68,0.3)',
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       )
                     }
 
-                    // Future: locked, not interactive
+                    // Future: empty with gold border
                     if (isCellFuture) {
                       return (
                         <div key={dayIndex} className="flex justify-center">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#1c1c1c] flex items-center justify-center" />
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 border-[#d4af37]/20 flex items-center justify-center" />
                         </div>
                       )
                     }
 
-                    // Today: interactive
+                    // Today: interactive with gold border
                     return (
                       <div key={dayIndex} className="flex justify-center">
                         <button
@@ -380,12 +406,12 @@ export default function MonthlyPage() {
                             w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 flex items-center justify-center
                             transition-all duration-200 active:scale-95 disabled:opacity-50
                             ${completed
-                              ? 'btn-luxury border-transparent shadow-[0_0_15px_rgba(212,175,55,0.5)]'
-                              : 'bg-transparent border-[#d4af37]/30 hover:border-[#d4af37] hover:bg-[rgba(212,175,55,0.05)]'
+                              ? 'border-[#d4af37] bg-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.5)]'
+                              : 'bg-transparent border-[#d4af37]/50 hover:border-[#d4af37] hover:bg-[rgba(212,175,55,0.05)]'
                             }
                           `}
                         >
-                          {completed && <Check className="w-3 h-3 sm:w-5 sm:h-5 stroke-[3] text-black" />}
+                          {completed && <Check className="w-3 h-3 sm:w-5 sm:h-5 stroke-[3] text-[#0a0a0a]" />}
                         </button>
                       </div>
                     )
