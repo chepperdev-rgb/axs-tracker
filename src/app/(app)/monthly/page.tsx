@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Check, Star, Plus, Loader2 } from 'lucide-react'
+import { Check, Star, Plus, Loader2, X } from 'lucide-react'
 import { useTranslations } from '@/providers/i18n-provider'
 import { CircularGauge } from '@/components/ui/tachometer-gauge'
 import {
@@ -13,14 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
 import { useHabits, useHabitLogs } from '@/hooks'
+import { toast } from 'sonner'
 
 
 // Get weeks for a given month
@@ -116,14 +110,39 @@ export default function MonthlyPage() {
     toggleLog({ habitId, date })
   }
 
-  // Handle adding habit to month
-  const handleAddToMonth = async (habitId: string) => {
+  // Selected habits in the add modal
+  const [selectedHabitIds, setSelectedHabitIds] = useState<Set<string>>(new Set())
+  const [isAdding, setIsAdding] = useState(false)
+
+  const toggleHabitSelection = (id: string) => {
+    setSelectedHabitIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleAddSelected = async () => {
+    if (selectedHabitIds.size === 0) return
+    setIsAdding(true)
     try {
-      await addToMonth({ id: habitId, year: selectedYear, month: selectedMonth })
+      for (const id of selectedHabitIds) {
+        await addToMonth({ id, year: selectedYear, month: selectedMonth })
+      }
+      toast.success(`${selectedHabitIds.size} habit${selectedHabitIds.size > 1 ? 's' : ''} added`)
+      setSelectedHabitIds(new Set())
       setIsAddModalOpen(false)
     } catch (error) {
-      console.error('Failed to add habit to month:', error)
+      toast.error('Failed to add habits')
+    } finally {
+      setIsAdding(false)
     }
+  }
+
+  const handleOpenAddModal = () => {
+    setSelectedHabitIds(new Set())
+    setIsAddModalOpen(true)
   }
 
   // Generate year options (current year +/- 2 years)
@@ -212,7 +231,7 @@ export default function MonthlyPage() {
             variant="gold-outline"
             size="sm"
             className="text-xs sm:text-sm"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleOpenAddModal}
           >
             <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">{t.monthly.addFromLibrary}</span>
@@ -258,7 +277,7 @@ export default function MonthlyPage() {
           <p className="text-[#a0a0a0] mb-4">{t.common.noHabitsInMonth}</p>
           <Button
             variant="luxury"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleOpenAddModal}
           >
             <Plus className="w-4 h-4 mr-2" />
             {t.common.addHabitsFromLibrary}
@@ -382,54 +401,106 @@ export default function MonthlyPage() {
         </div>
       )}
 
-      {/* Add Habit from Library Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="glass-card border-[rgba(212,175,55,0.15)] max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#f5f5f5]">{t.common.addHabitsFromLibrary} - {t.monthly.months[selectedMonth - 1]} {selectedYear}</DialogTitle>
-            <DialogDescription className="text-[#a0a0a0]">
-              {t.habits.step2}
-            </DialogDescription>
-          </DialogHeader>
+      {/* Add Habit from Library Popup */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setIsAddModalOpen(false)}
+          />
+          {/* Modal */}
+          <div className="relative w-full sm:max-w-md glass-card sm:rounded-2xl rounded-t-2xl border border-[rgba(212,175,55,0.2)] flex flex-col max-h-[85vh] sm:max-h-[70vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[rgba(212,175,55,0.1)]">
+              <div>
+                <h3 className="text-lg font-semibold text-[#f5f5f5]">
+                  {t.common.addHabitsFromLibrary}
+                </h3>
+                <p className="text-xs text-[#707070] mt-0.5">
+                  {t.monthly.months[selectedMonth - 1]} {selectedYear}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {habitsNotInMonth.length === 0 ? (
-              <p className="text-[#a0a0a0] text-center py-4">
-                {t.habits.step1}
-              </p>
-            ) : (
-              habitsNotInMonth.map((habit) => (
-                <div
-                  key={habit.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-[rgba(212,175,55,0.1)] hover:border-[rgba(212,175,55,0.3)] transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    {habit.emoji ? (
-                      <span className="text-base">{habit.emoji}</span>
-                    ) : (
-                      <Star className="w-4 h-4 text-[#d4af37]" />
-                    )}
-                    <span className="text-sm text-[#f5f5f5]">{habit.name}</span>
-                  </div>
-                  <Button
-                    variant="gold-outline"
-                    size="sm"
-                    onClick={() => handleAddToMonth(habit.id)}
-                    disabled={isAddingToMonth}
-                  >
-                    {isAddingToMonth ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Plus className="w-3 h-3" />
-                    )}
-                    Add
-                  </Button>
+            {/* Scrollable List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {habitsNotInMonth.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-[#707070] text-sm">All habits already added</p>
+                  <p className="text-[#505050] text-xs mt-1">Create new habits in the library</p>
                 </div>
-              ))
+              ) : (
+                habitsNotInMonth.map((habit) => {
+                  const isSelected = selectedHabitIds.has(habit.id)
+                  return (
+                    <button
+                      key={habit.id}
+                      onClick={() => toggleHabitSelection(habit.id)}
+                      className={`
+                        w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left
+                        ${isSelected
+                          ? 'bg-[rgba(212,175,55,0.1)] border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                          : 'border-[rgba(212,175,55,0.08)] hover:border-[rgba(212,175,55,0.25)] hover:bg-[rgba(255,255,255,0.02)]'
+                        }
+                      `}
+                    >
+                      {/* Checkbox */}
+                      <div className={`
+                        w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all
+                        ${isSelected
+                          ? 'bg-[#d4af37] border-[#d4af37]'
+                          : 'border-[#3a3a3a]'
+                        }
+                      `}>
+                        {isSelected && <Check className="w-3 h-3 text-[#0a0a0a] stroke-[3]" />}
+                      </div>
+                      {/* Habit info */}
+                      {habit.emoji ? (
+                        <span className="text-lg flex-shrink-0">{habit.emoji}</span>
+                      ) : (
+                        <Star className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
+                      )}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm text-[#f5f5f5] font-medium truncate">{habit.name}</span>
+                        {habit.category && (
+                          <span className="text-[10px] text-[#707070] uppercase tracking-wider">{habit.category}</span>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Footer with confirm button */}
+            {habitsNotInMonth.length > 0 && (
+              <div className="p-4 border-t border-[rgba(212,175,55,0.1)]">
+                <Button
+                  variant="luxury"
+                  className="w-full h-12 text-base rounded-xl"
+                  onClick={handleAddSelected}
+                  disabled={selectedHabitIds.size === 0 || isAdding}
+                >
+                  {isAdding ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : selectedHabitIds.size === 0 ? (
+                    'Select habits to add'
+                  ) : (
+                    `Add ${selectedHabitIds.size} habit${selectedHabitIds.size > 1 ? 's' : ''}`
+                  )}
+                </Button>
+              </div>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   )
 }
