@@ -29,9 +29,9 @@ export function TachometerGauge({
 }: TachometerGaugeProps) {
   // Size configurations
   const sizes = {
-    sm: { width: 140, height: 90, ringWidth: 15, labelSize: 10 },
-    md: { width: 200, height: 130, ringWidth: 20, labelSize: 12 },
-    lg: { width: 260, height: 170, ringWidth: 25, labelSize: 14 }
+    sm: { width: 140, height: 105, ringWidth: 15, labelSize: 10 },
+    md: { width: 200, height: 145, ringWidth: 20, labelSize: 12 },
+    lg: { width: 260, height: 185, ringWidth: 25, labelSize: 14 }
   }
 
   const config = sizes[size]
@@ -69,7 +69,7 @@ export function TachometerGauge({
       />
       {label && (
         <div
-          className="text-[#a0a0a0] uppercase tracking-wider text-center -mt-2"
+          className="text-[#a0a0a0] uppercase tracking-wider text-center mt-1"
           style={{ fontSize: config.labelSize }}
         >
           {label}

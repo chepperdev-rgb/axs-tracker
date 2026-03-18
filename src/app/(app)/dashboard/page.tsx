@@ -119,6 +119,127 @@ function WeeklyBarChart({ data }: { data: number[] }) {
   )
 }
 
+function CumulativeChart({ data }: { data: { date: string; percentage: number }[] }) {
+  const [animated, setAnimated] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimated(true), 200)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!data || data.length === 0) return null
+
+  // Build cumulative data — only grows or stays flat
+  const cumulative: number[] = []
+  let total = 0
+  for (const day of data) {
+    total += day.percentage
+    cumulative.push(total)
+  }
+  const maxVal = Math.max(...cumulative, 1)
+
+  // SVG dimensions
+  const w = 500
+  const h = 160
+  const padX = 30
+  const padY = 15
+  const chartW = w - padX * 2
+  const chartH = h - padY * 2
+
+  // Build path
+  const points = cumulative.map((val, i) => {
+    const x = padX + (i / (cumulative.length - 1)) * chartW
+    const y = padY + chartH - (val / maxVal) * chartH
+    return { x, y }
+  })
+
+  const pathD = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+    .join(' ')
+
+  // Area fill (path + close to bottom)
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${padY + chartH} L ${points[0].x} ${padY + chartH} Z`
+
+  // Grid lines
+  const gridLines = [0, 0.25, 0.5, 0.75, 1]
+
+  return (
+    <div className="w-full overflow-hidden">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+        <defs>
+          <linearGradient id="cumLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8a6a2a" />
+            <stop offset="50%" stopColor="#d4af37" />
+            <stop offset="100%" stopColor="#f0d060" />
+          </linearGradient>
+          <linearGradient id="cumAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(212,175,55,0.25)" />
+            <stop offset="100%" stopColor="rgba(212,175,55,0)" />
+          </linearGradient>
+          <filter id="cumGlow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Grid lines */}
+        {gridLines.map((frac, i) => {
+          const y = padY + chartH - frac * chartH
+          return (
+            <line key={i} x1={padX} y1={y} x2={w - padX} y2={y}
+              stroke="#1c1c1c" strokeWidth="0.5" />
+          )
+        })}
+
+        {/* Area fill */}
+        <path
+          d={areaD}
+          fill="url(#cumAreaGrad)"
+          opacity={animated ? 1 : 0}
+          style={{ transition: 'opacity 1s ease' }}
+        />
+
+        {/* Main curve */}
+        <path
+          d={pathD}
+          fill="none"
+          stroke="url(#cumLineGrad)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#cumGlow)"
+          strokeDasharray={animated ? 'none' : '2000'}
+          strokeDashoffset={animated ? '0' : '2000'}
+          style={{ transition: 'stroke-dashoffset 2s ease-out' }}
+        />
+
+        {/* Dots on data points */}
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="2.5"
+            fill="#d4af37"
+            opacity={animated ? 0.8 : 0}
+            style={{ transition: `opacity 0.5s ease ${i * 0.05}s` }}
+          />
+        ))}
+
+        {/* Day labels (every 5th) */}
+        {points.map((p, i) => {
+          if (i % 5 !== 0 && i !== points.length - 1) return null
+          const label = data[i]?.date?.slice(-2) || ''
+          return (
+            <text key={i} x={p.x} y={h - 2}
+              fill="#505050" fontSize="8" textAnchor="middle" fontFamily="system-ui"
+            >{label}</text>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
 function HeatmapCell({ percentage, date }: { percentage: number; date: string }) {
   const getColorClass = (pct: number) => {
     if (pct === 0) return 'bg-[#2a2a2a]/50'
@@ -441,6 +562,18 @@ export default function DashboardPage() {
             </div>
             <span className="text-[10px] sm:text-xs text-[#707070]">100%</span>
           </div>
+        </Card>
+
+        {/* Cumulative Progress Chart */}
+        <Card className="p-4 sm:p-5 lg:col-span-2">
+          <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">
+            Cumulative Progress
+          </h3>
+          {isLoading ? (
+            <Skeleton className="w-full h-32 sm:h-40 rounded" />
+          ) : (
+            <CumulativeChart data={stats?.heatmapData || []} />
+          )}
         </Card>
       </div>
     </div>
