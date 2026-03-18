@@ -347,8 +347,8 @@ function AnimatedTachometer({ delay }: { delay: number }) {
         </g>
       </svg>
 
-      {/* Center text — positioned relative, not overlapping */}
-      <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: 0 }}>
+      {/* Text inside the gauge arc, upper area */}
+      <div className="absolute left-0 right-0 flex flex-col items-center" style={{ top: 20 }}>
         <span
           className="text-4xl font-bold font-mono tabular-nums"
           style={{
