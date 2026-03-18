@@ -517,20 +517,9 @@ export default function LandingPage() {
           </Link>
         </MotionText>
 
-        {/* ── Gauges Row ────────────────────────────────── */}
-        <div className="mt-16 md:mt-24 flex flex-col items-center gap-12 w-full max-w-5xl">
-
-          {/* Central tachometer */}
+        {/* ── Tachometer ────────────────────────────────── */}
+        <div className="mt-16 md:mt-24">
           <AnimatedTachometer delay={1300} />
-
-          {/* Circular gauges row */}
-          <div className="flex flex-wrap justify-center gap-8 md:gap-14">
-            <AnimatedGauge targetPercent={92} size={120} label="Fitness" delay={1600} />
-            <AnimatedGauge targetPercent={78} size={120} label="Mindfulness" delay={1800} />
-            <AnimatedGauge targetPercent={95} size={120} label="Learning" delay={2000} />
-            <AnimatedGauge targetPercent={64} size={120} label="Nutrition" delay={2200} />
-            <AnimatedGauge targetPercent={88} size={120} label="Sleep" delay={2400} />
-          </div>
         </div>
       </section>
 
