@@ -285,37 +285,6 @@ function AnimatedTachometer({ delay }: { delay: number }) {
           )
         })()}
 
-        {/* Tick marks */}
-        {[...Array(11)].map((_, i) => {
-          const angle = -135 + i * 27
-          const rad = (angle * Math.PI) / 180
-          const r1 = 90, r2 = 102
-          return (
-            <line
-              key={i}
-              x1={cx + r1 * Math.cos(rad)} y1={cy + r1 * Math.sin(rad)}
-              x2={cx + r2 * Math.cos(rad)} y2={cy + r2 * Math.sin(rad)}
-              stroke={getTickColor(i * 10)} strokeWidth={i % 5 === 0 ? 3 : 2}
-              style={{ transition: 'stroke 0.3s' }}
-            />
-          )
-        })}
-
-        {/* Numbers */}
-        {[0, 20, 40, 60, 80, 100].map((num, i) => {
-          const angle = -135 + i * 54
-          const rad = (angle * Math.PI) / 180
-          const r = 76
-          return (
-            <text key={num}
-              x={cx + r * Math.cos(rad)} y={cy + r * Math.sin(rad)}
-              fill={getNumberColor(num)}
-              fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle"
-              fontFamily="system-ui" style={{ transition: 'fill 0.3s' }}
-            >{num}</text>
-          )
-        })}
-
         {/* Center hub */}
         <circle cx={cx} cy={cy} r={20} fill="#1a1a1a"
           stroke={inRedZone ? '#e74c3c' : '#d4af37'} strokeWidth="2"
@@ -356,9 +325,6 @@ function AnimatedTachometer({ delay }: { delay: number }) {
           }}
         >
           {Math.round(progress)}%
-        </span>
-        <span className="text-xs text-[#707070] uppercase tracking-[0.2em] mt-0.5">
-          Productivity
         </span>
       </div>
     </div>
