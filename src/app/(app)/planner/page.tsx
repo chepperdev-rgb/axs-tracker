@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, KeyboardEvent } from 'react'
+import { useState, useMemo, useRef, useEffect, KeyboardEvent } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,21 +27,30 @@ export default function PlannerPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const escapePressedRef = useRef(false)
   const [dayPopup, setDayPopup] = useState<{ date: string; dayName: string } | null>(null)
+  const todayCardRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, isCreating } =
     useTasks(weekStart)
+
+  // Auto-scroll to today on mount
+  useEffect(() => {
+    if (!isLoading && todayCardRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current
+      const card = todayCardRef.current
+      const scrollLeft = card.offsetLeft - container.offsetWidth / 2 + card.offsetWidth / 2
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
+    }
+  }, [isLoading, weekStart])
 
   // Group tasks by date
   const tasksByDate = useMemo(() => {
     const grouped: Record<string, Task[]> = {}
     tasks.forEach((task) => {
       const date = typeof task.date === 'string' ? task.date : task.date
-      if (!grouped[date]) {
-        grouped[date] = []
-      }
+      if (!grouped[date]) grouped[date] = []
       grouped[date].push(task)
     })
-    // Sort tasks within each day by sortOrder then createdAt
     Object.keys(grouped).forEach((date) => {
       grouped[date].sort((a, b) => {
         if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder
@@ -53,7 +62,6 @@ export default function PlannerPage() {
     return grouped
   }, [tasks])
 
-  // Calculate week stats
   const weekStats = useMemo(() => {
     const totalTasks = tasks.length
     const completedTasks = tasks.filter((t) => t.completed).length
@@ -61,7 +69,6 @@ export default function PlannerPage() {
     return { total: totalTasks, completed: completedTasks, percentage }
   }, [tasks])
 
-  // Calculate today stats
   const todayStats = useMemo(() => {
     const now = new Date()
     const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -81,13 +88,15 @@ export default function PlannerPage() {
   const goToPreviousWeek = () => {
     const prev = new Date(weekStart)
     prev.setDate(prev.getDate() - 7)
-    setWeekStart(prev.toISOString().split('T')[0])
+    const y = prev.getFullYear(), m = String(prev.getMonth() + 1).padStart(2, '0'), d = String(prev.getDate()).padStart(2, '0')
+    setWeekStart(`${y}-${m}-${d}`)
   }
 
   const goToNextWeek = () => {
     const next = new Date(weekStart)
     next.setDate(next.getDate() + 7)
-    setWeekStart(next.toISOString().split('T')[0])
+    const y = next.getFullYear(), m = String(next.getMonth() + 1).padStart(2, '0'), d = String(next.getDate()).padStart(2, '0')
+    setWeekStart(`${y}-${m}-${d}`)
   }
 
   const handleAddTaskClick = (dayIndex: number) => {
@@ -100,23 +109,16 @@ export default function PlannerPage() {
       setAddingTaskForDay(null)
       return
     }
-
     const date = getDateForDay(weekStart, dayIndex)
     createTask(
       { title: newTaskTitle.trim(), date },
-      {
-        onSuccess: () => {
-          setNewTaskTitle('')
-          setAddingTaskForDay(null)
-        },
-      }
+      { onSuccess: () => { setNewTaskTitle(''); setAddingTaskForDay(null) } }
     )
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, dayIndex: number) => {
-    if (e.key === 'Enter') {
-      handleCreateTask(dayIndex)
-    } else if (e.key === 'Escape') {
+    if (e.key === 'Enter') handleCreateTask(dayIndex)
+    else if (e.key === 'Escape') {
       escapePressedRef.current = true
       setAddingTaskForDay(null)
       setNewTaskTitle('')
@@ -124,10 +126,7 @@ export default function PlannerPage() {
   }
 
   const handleBlur = (dayIndex: number) => {
-    if (escapePressedRef.current) {
-      escapePressedRef.current = false
-      return
-    }
+    if (escapePressedRef.current) { escapePressedRef.current = false; return }
     handleCreateTask(dayIndex)
   }
 
@@ -137,14 +136,16 @@ export default function PlannerPage() {
     updateTask({ id: task.id, completed: !task.completed })
   }
 
-  const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId)
-  }
+  const handleDeleteTask = (taskId: string) => deleteTask(taskId)
 
-  // Calculate stroke dashoffset for donut charts
-  const circumference = 2 * Math.PI * 40 // r=40
+  const circumference = 2 * Math.PI * 40
   const weeklyOffset = circumference - (weekStats.percentage / 100) * circumference
   const todayOffset = circumference - (todayStats.percentage / 100) * circumference
+
+  // Open day detail (any day, not just past)
+  const openDayDetail = (date: string, dayName: string) => {
+    setDayPopup({ date, dayName })
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -156,7 +157,6 @@ export default function PlannerPage() {
           </h1>
           <p className="text-base sm:text-lg text-gold-gradient mt-1">{t.planner.subtitle}</p>
         </div>
-
         <Button
           variant="glass"
           size="sm"
@@ -179,11 +179,7 @@ export default function PlannerPage() {
             <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
         </div>
-
-        <div className="text-base sm:text-lg font-medium text-[#f5f5f5] order-1 sm:order-2">
-          {weekRange}
-        </div>
-
+        <div className="text-base sm:text-lg font-medium text-[#f5f5f5] order-1 sm:order-2">{weekRange}</div>
         <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 glass-card rounded-lg order-3 self-start sm:self-auto">
           <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{year}</span>
         </div>
@@ -193,10 +189,7 @@ export default function PlannerPage() {
       <Card className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
-            WEEK:{' '}
-            <span className="text-[#d4af37] gold-glow">
-              {weekStats.completed}/{weekStats.total}
-            </span>
+            WEEK: <span className="text-[#d4af37] gold-glow">{weekStats.completed}/{weekStats.total}</span>
           </span>
           <span className="text-[10px] sm:text-sm text-[#707070]">{t.common.basedOnCreatedTasks}</span>
         </div>
@@ -208,196 +201,177 @@ export default function PlannerPage() {
         </div>
       </Card>
 
-      {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-[#d4af37]" />
         </div>
       )}
 
-      {/* Day Grid - Horizontally scrollable on mobile */}
+      {/* Day Grid — scrollable, today centered */}
       {!isLoading && (
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2">
-          <div className="grid grid-cols-7 gap-2 sm:gap-4 min-w-[700px] sm:min-w-0">
+        <div ref={scrollContainerRef} className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 scroll-smooth">
+          <div className="flex gap-3 sm:gap-4" style={{ minWidth: 'max-content' }}>
             {weekDays.map((day, index) => {
               const date = getDateForDay(weekStart, index)
               const dayTasks = tasksByDate[date] || []
               const completedCount = dayTasks.filter((t) => t.completed).length
               const totalCount = dayTasks.length
-              const percentage =
-                totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+              const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
               const isTodayDate = isToday(date)
               const isPastDate = isPast(date)
-              const isFutureDate = isFuture(date)
 
               return (
-                <Card
+                <div
                   key={day}
-                  onClick={isPastDate ? () => setDayPopup({ date, dayName: day }) : undefined}
-                  className={`
-                    overflow-hidden p-0
-                    ${isTodayDate ? 'border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' : ''}
-                    ${isPastDate ? 'opacity-60 cursor-pointer hover:opacity-80 transition-opacity' : ''}
-                  `}
+                  ref={isTodayDate ? todayCardRef : undefined}
+                  className="flex-shrink-0"
+                  style={{ width: 'clamp(200px, 28vw, 280px)' }}
                 >
-                  {/* Day Header */}
-                  <div
+                  <Card
                     className={`
-                      p-2 sm:p-3 border-b
-                      ${isTodayDate ? 'border-[rgba(212,175,55,0.3)] bg-[rgba(212,175,55,0.1)]' : 'border-[rgba(212,175,55,0.1)]'}
+                      overflow-hidden p-0 h-full transition-all duration-300
+                      ${isTodayDate
+                        ? 'border-[#d4af37] gold-pulse'
+                        : isPastDate
+                        ? 'opacity-50 hover:opacity-70 transition-opacity'
+                        : ''
+                      }
                     `}
+                    style={isTodayDate ? {
+                      boxShadow: '0 0 25px rgba(212,175,55,0.35), 0 0 50px rgba(212,175,55,0.15), inset 0 0 15px rgba(212,175,55,0.05)',
+                    } : undefined}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span
-                        className={`
-                          text-xs sm:text-sm font-semibold uppercase
-                          ${isTodayDate ? 'text-[#d4af37] gold-glow' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
-                        `}
-                      >
-                        <span className="sm:hidden">{weekDaysShort[index]}</span>
-                        <span className="hidden sm:inline">{day}</span>
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-[#707070] font-mono">
-                        {completedCount}/{totalCount}
-                      </span>
-                    </div>
-                    <div className="h-1 bg-[#2a2a2a] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          isPastDate
-                            ? 'bg-[#3a3a3a]'
-                            : 'bg-gradient-to-r from-[#d4af37] to-[#f0d060]'
-                        }`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Tasks */}
-                  <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-[100px] sm:min-h-[120px]">
-                    {dayTasks.length === 0 && addingTaskForDay !== index ? (
-                      <p className="text-[10px] sm:text-xs text-[#707070] text-center py-3 sm:py-4">
-                        {t.common.noTasks}
-                      </p>
-                    ) : (
-                      dayTasks.map((task) => {
-                        // Past: show gray X for incomplete, gray check for completed
-                        if (isPastDate) {
-                          return (
-                            <div
-                              key={task.id}
-                              className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg"
-                            >
-                              <div className="mt-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-2 border-[#3a3a3a] flex items-center justify-center flex-shrink-0 bg-[#1c1c1c]">
-                                {task.completed ? (
-                                  <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
-                                    <path d="M2 6L5 9L10 3" stroke="#505050" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                ) : (
-                                  <XIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#505050]" />
-                                )}
-                              </div>
-                              <span className="text-[10px] sm:text-sm leading-tight flex-1 text-[#505050] line-through">
-                                {task.title}
-                              </span>
-                            </div>
-                          )
+                    {/* Day Header — clickable to open detail */}
+                    <button
+                      onClick={() => openDayDetail(date, day)}
+                      className={`
+                        w-full p-3 sm:p-4 border-b text-left transition-colors
+                        ${isTodayDate
+                          ? 'border-[rgba(212,175,55,0.4)] bg-[rgba(212,175,55,0.08)]'
+                          : 'border-[rgba(212,175,55,0.1)] hover:bg-[rgba(212,175,55,0.03)]'
                         }
+                      `}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`
+                          text-sm sm:text-base font-semibold uppercase
+                          ${isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
+                        `}>
+                          <span className="sm:hidden">{weekDaysShort[index]}</span>
+                          <span className="hidden sm:inline">{day}</span>
+                          {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">TODAY</span>}
+                        </span>
+                        <span className="text-xs sm:text-sm text-[#707070] font-mono">
+                          {completedCount}/{totalCount}
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isPastDate ? 'bg-[#3a3a3a]' : 'bg-gradient-to-r from-[#d4af37] to-[#f0d060]'
+                          }`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </button>
 
-                        // Today: interactive checkboxes
-                        if (isTodayDate) {
+                    {/* Tasks */}
+                    <div className="p-3 sm:p-4 space-y-2 min-h-[200px] sm:min-h-[240px]">
+                      {dayTasks.length === 0 && addingTaskForDay !== index ? (
+                        <p className="text-xs sm:text-sm text-[#707070] text-center py-6 sm:py-8">
+                          {t.common.noTasks}
+                        </p>
+                      ) : (
+                        dayTasks.map((task) => {
+                          if (isPastDate) {
+                            return (
+                              <div key={task.id} className="flex items-start gap-2 p-2 rounded-lg">
+                                <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-[#3a3a3a] flex items-center justify-center flex-shrink-0 bg-[#1c1c1c]">
+                                  {task.completed ? (
+                                    <Check className="w-3 h-3 text-[#505050]" />
+                                  ) : (
+                                    <XIcon className="w-3 h-3 text-[#505050]" />
+                                  )}
+                                </div>
+                                <span className="text-xs sm:text-sm leading-relaxed flex-1 text-[#505050] line-through">
+                                  {task.title}
+                                </span>
+                              </div>
+                            )
+                          }
+
+                          if (isTodayDate) {
+                            return (
+                              <div key={task.id} className="group flex items-start gap-2 p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)] transition-colors">
+                                <Checkbox
+                                  checked={task.completed}
+                                  onCheckedChange={() => handleToggleComplete(task)}
+                                  className="mt-0.5 border-[#2a2a2a] w-4 h-4 sm:w-5 sm:h-5 data-[state=checked]:bg-[#d4af37] data-[state=checked]:border-[#d4af37]"
+                                />
+                                <span className={`text-xs sm:text-sm leading-relaxed flex-1 ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}`}>
+                                  {task.title}
+                                </span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }}
+                                  className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )
+                          }
+
                           return (
-                            <div
-                              key={task.id}
-                              className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)] transition-colors"
-                            >
-                              <Checkbox
-                                checked={task.completed}
-                                onCheckedChange={() => handleToggleComplete(task)}
-                                className={`
-                                  mt-0.5 border-[#2a2a2a] w-3.5 h-3.5 sm:w-4 sm:h-4
-                                  data-[state=checked]:bg-[#d4af37]
-                                  data-[state=checked]:border-[#d4af37]
-                                `}
-                              />
-                              <span
-                                className={`
-                                  text-[10px] sm:text-sm leading-tight flex-1
-                                  ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}
-                                `}
-                              >
-                                {task.title}
-                              </span>
+                            <div key={task.id} className="group flex items-start gap-2 p-2 rounded-lg">
+                              <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded border-2 border-[#2a2a2a] flex-shrink-0" />
+                              <span className="text-xs sm:text-sm leading-relaxed flex-1 text-[#707070]">{task.title}</span>
                               <button
-                                onClick={() => handleDeleteTask(task.id)}
+                                onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }}
                                 className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
                               >
-                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           )
-                        }
+                        })
+                      )}
 
-                        // Future: visible but locked
-                        return (
-                          <div
-                            key={task.id}
-                            className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg"
-                          >
-                            <div className="mt-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-2 border-[#2a2a2a] flex-shrink-0" />
-                            <span className="text-[10px] sm:text-sm leading-tight flex-1 text-[#707070]">
-                              {task.title}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteTask(task.id)}
-                              className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
-                            >
-                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
-                          </div>
-                        )
-                      })
-                    )}
+                      {addingTaskForDay === index && (
+                        <div className="flex items-center gap-2 p-2">
+                          <Input
+                            autoFocus
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
+                            onBlur={() => handleBlur(index)}
+                            placeholder="Task name..."
+                            disabled={isCreating}
+                            className="h-8 text-xs sm:text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-3"
+                          />
+                          {isCreating && <Loader2 className="w-4 h-4 animate-spin text-[#d4af37]" />}
+                        </div>
+                      )}
 
-                    {/* Add Task Input */}
-                    {addingTaskForDay === index && (
-                      <div className="flex items-center gap-1.5 p-1.5 sm:p-2">
-                        <Input
-                          autoFocus
-                          value={newTaskTitle}
-                          onChange={(e) => setNewTaskTitle(e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(e, index)}
-                          onBlur={() => handleBlur(index)}
-                          placeholder="Task name..."
-                          disabled={isCreating}
-                          className="h-6 sm:h-7 text-[10px] sm:text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-2"
-                        />
-                        {isCreating && (
-                          <Loader2 className="w-3 h-3 animate-spin text-[#d4af37]" />
-                        )}
-                      </div>
-                    )}
-
-                    {/* Add Task Button — only for today and future */}
-                    {addingTaskForDay !== index && !isPastDate && (
-                      <button
-                        onClick={() => handleAddTaskClick(index)}
-                        className="flex items-center gap-1 sm:gap-2 text-[#707070] hover:text-[#d4af37] text-[10px] sm:text-sm transition-colors w-full p-1.5 sm:p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)]"
-                      >
-                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">{t.common.addTask}</span>
-                        <span className="sm:hidden">{t.common.add}</span>
-                      </button>
-                    )}
-                  </div>
-                </Card>
+                      {addingTaskForDay !== index && !isPastDate && (
+                        <button
+                          onClick={() => handleAddTaskClick(index)}
+                          className="flex items-center gap-2 text-[#707070] hover:text-[#d4af37] text-xs sm:text-sm transition-colors w-full p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)]"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="hidden sm:inline">{t.common.addTask}</span>
+                          <span className="sm:hidden">{t.common.add}</span>
+                        </button>
+                      )}
+                    </div>
+                  </Card>
+                </div>
               )
             })}
           </div>
         </div>
       )}
 
-      {/* Past Day Popup */}
+      {/* Day Detail Popup — motion animated */}
       {dayPopup && (() => {
         const popupTasks = tasksByDate[dayPopup.date] || []
         const completedTasks = popupTasks.filter(t => t.completed)
@@ -405,8 +379,10 @@ export default function PlannerPage() {
         const total = popupTasks.length
         const done = completedTasks.length
         const pct = total > 0 ? Math.round((done / total) * 100) : 0
+        const isPastDay = isPast(dayPopup.date)
+        const isTodayDay = isToday(dayPopup.date)
+        const isFutureDay = isFuture(dayPopup.date)
 
-        // Motivational phrase based on completion
         const motivation = pct === 100
           ? 'Perfect day! Every task completed.'
           : pct >= 75
@@ -416,39 +392,58 @@ export default function PlannerPage() {
           : pct > 0
           ? 'Every step counts. Tomorrow is a new chance.'
           : total === 0
-          ? 'No tasks were planned for this day.'
+          ? (isFutureDay ? 'Plan ahead — add tasks for this day.' : 'No tasks were planned for this day.')
           : 'Missed this one. Use it as fuel for today.'
 
         const MotivIcon = pct === 100 ? Trophy : pct >= 50 ? TrendingUp : AlertTriangle
         const motivColor = pct >= 75 ? '#d4af37' : pct >= 50 ? '#a0a0a0' : '#707070'
 
-        // Format date for display
         const [y, m, d] = dayPopup.date.split('-').map(Number)
         const displayDate = new Date(y, m - 1, d).toLocaleDateString('en-US', {
           weekday: 'long', month: 'long', day: 'numeric'
         })
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setDayPopup(null)} />
-            <div className="relative w-full max-w-sm glass-card rounded-2xl border border-[rgba(212,175,55,0.2)] overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+              onClick={() => setDayPopup(null)}
+            />
+            <div
+              className="relative w-full sm:max-w-md glass-card sm:rounded-2xl rounded-t-2xl overflow-hidden"
+              style={{
+                borderColor: isTodayDay ? '#d4af37' : 'rgba(212,175,55,0.2)',
+                borderWidth: 1,
+                boxShadow: isTodayDay
+                  ? '0 0 40px rgba(212,175,55,0.3), 0 0 80px rgba(212,175,55,0.1)'
+                  : '0 0 30px rgba(0,0,0,0.5)',
+                animation: 'popupSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-[rgba(212,175,55,0.1)]">
                 <div>
-                  <h3 className="text-base font-semibold text-[#f5f5f5]">{dayPopup.dayName}</h3>
+                  <h3 className="text-lg font-semibold text-[#f5f5f5]">{dayPopup.dayName}</h3>
                   <p className="text-xs text-[#707070] mt-0.5">{displayDate}</p>
                 </div>
-                <button
-                  onClick={() => setDayPopup(null)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
-                >
-                  <XIcon className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isTodayDay && (
+                    <span className="px-2 py-0.5 rounded-full bg-[rgba(212,175,55,0.15)] text-[#d4af37] text-[10px] font-semibold uppercase tracking-wider border border-[rgba(212,175,55,0.3)]">
+                      Today
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setDayPopup(null)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+                  >
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Stats */}
+              {/* Stats gauge */}
               <div className="px-5 py-4 border-b border-[rgba(212,175,55,0.1)] flex items-center gap-4">
-                <div className="relative w-16 h-16">
+                <div className="relative w-16 h-16 flex-shrink-0">
                   <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                     <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
                     <circle cx="50" cy="50" r="40" fill="none"
@@ -456,6 +451,10 @@ export default function PlannerPage() {
                       strokeWidth="8" strokeLinecap="round"
                       strokeDasharray={251.2}
                       strokeDashoffset={251.2 - (pct / 100) * 251.2}
+                      style={{
+                        transition: 'stroke-dashoffset 0.8s ease-out',
+                        filter: pct >= 75 ? 'drop-shadow(0 0 6px rgba(212,175,55,0.5))' : 'none',
+                      }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -464,42 +463,82 @@ export default function PlannerPage() {
                 </div>
                 <div>
                   <p className="text-sm text-[#f5f5f5] font-medium">{done}/{total} tasks</p>
-                  <p className="text-xs text-[#707070] mt-0.5">{done} completed · {total - done} missed</p>
+                  <p className="text-xs text-[#707070] mt-0.5">
+                    {isPastDay ? `${done} completed · ${total - done} missed` : `${done} done so far`}
+                  </p>
                 </div>
               </div>
 
-              {/* Task list */}
-              <div className="px-5 py-3 max-h-[200px] overflow-y-auto space-y-1.5">
+              {/* Task list with staggered animation */}
+              <div className="px-5 py-3 max-h-[250px] overflow-y-auto space-y-1">
                 {popupTasks.length === 0 ? (
-                  <p className="text-sm text-[#505050] text-center py-4">No tasks</p>
+                  <p className="text-sm text-[#505050] text-center py-6">No tasks</p>
                 ) : (
-                  <>
-                    {completedTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-2 py-1">
-                        <div className="w-4 h-4 rounded bg-[#d4af37]/20 flex items-center justify-center flex-shrink-0">
-                          <Check className="w-3 h-3 text-[#d4af37]" />
+                  popupTasks.map((task, i) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-3 py-2 px-1"
+                      style={{
+                        animation: `popupItemFade 0.3s ease-out ${i * 0.05}s both`,
+                      }}
+                    >
+                      {task.completed ? (
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: 'rgba(212,175,55,0.15)',
+                            boxShadow: '0 0 8px rgba(212,175,55,0.2)',
+                          }}
+                        >
+                          <Check className="w-3.5 h-3.5 text-[#d4af37]" />
                         </div>
-                        <span className="text-sm text-[#707070] line-through">{task.title}</span>
-                      </div>
-                    ))}
-                    {incompleteTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-2 py-1">
-                        <div className="w-4 h-4 rounded bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
-                          <XIcon className="w-3 h-3 text-[#3a3a3a]" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-md bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
+                          {isPastDay ? (
+                            <div className="w-2 h-2 rounded-full" style={{
+                              background: 'radial-gradient(circle, #ff4444, #cc0000)',
+                              boxShadow: '0 0 4px rgba(255,68,68,0.5)',
+                            }} />
+                          ) : (
+                            <div className="w-2 h-2 rounded-full bg-[#2a2a2a]" />
+                          )}
                         </div>
-                        <span className="text-sm text-[#505050]">{task.title}</span>
-                      </div>
-                    ))}
-                  </>
+                      )}
+                      <span className={`text-sm flex-1 ${
+                        task.completed
+                          ? 'text-[#a0a0a0] line-through'
+                          : isPastDay ? 'text-[#505050]' : 'text-[#f5f5f5]'
+                      }`}>
+                        {task.title}
+                      </span>
+                    </div>
+                  ))
                 )}
               </div>
 
               {/* Motivation */}
-              <div className="px-5 py-4 border-t border-[rgba(212,175,55,0.1)] flex items-center gap-3">
+              <div
+                className="px-5 py-4 border-t border-[rgba(212,175,55,0.1)] flex items-center gap-3"
+                style={{ animation: 'popupItemFade 0.4s ease-out 0.3s both' }}
+              >
                 <MotivIcon className="w-5 h-5 flex-shrink-0" style={{ color: motivColor }} />
-                <p className="text-sm" style={{ color: motivColor }}>{motivation}</p>
+                <p className="text-sm italic" style={{ color: motivColor }}>{motivation}</p>
               </div>
             </div>
+
+            <style>{`
+              @keyframes popupSlideUp {
+                from { opacity: 0; transform: translateY(30px) scale(0.96); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              @keyframes popupItemFade {
+                from { opacity: 0; transform: translateX(-10px); }
+                to { opacity: 1; transform: translateX(0); }
+              }
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+            `}</style>
           </div>
         )
       })()}
@@ -509,9 +548,7 @@ export default function PlannerPage() {
         <h2 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
           {t.planner.weeklyAnalytics}
         </h2>
-
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {/* Weekly Completion Donut */}
           <Card className="p-3 sm:p-5">
             <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4 text-center">
               {t.planner.weekly}
@@ -519,37 +556,18 @@ export default function PlannerPage() {
             <div className="flex items-center justify-center">
               <div className="relative w-20 h-20 sm:w-32 sm:h-32">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#2a2a2a"
-                    strokeWidth="8"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="url(#weeklyGradient)"
-                    strokeWidth="8"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={weeklyOffset}
-                    strokeLinecap="round"
-                    className="gold-glow transition-all duration-500"
-                  />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#weeklyGradient)" strokeWidth="8"
+                    strokeDasharray={circumference} strokeDashoffset={weeklyOffset} strokeLinecap="round"
+                    className="gold-glow transition-all duration-500" />
                   <defs>
                     <linearGradient id="weeklyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d4af37" />
-                      <stop offset="100%" stopColor="#f0d060" />
+                      <stop offset="0%" stopColor="#d4af37" /><stop offset="100%" stopColor="#f0d060" />
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">
-                    {weekStats.percentage}%
-                  </span>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">{weekStats.percentage}%</span>
                 </div>
               </div>
             </div>
@@ -558,7 +576,6 @@ export default function PlannerPage() {
             </p>
           </Card>
 
-          {/* Daily Completion Donut */}
           <Card className="p-3 sm:p-5">
             <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4 text-center">
               {t.common.today.toUpperCase()}
@@ -566,37 +583,18 @@ export default function PlannerPage() {
             <div className="flex items-center justify-center">
               <div className="relative w-20 h-20 sm:w-32 sm:h-32">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#2a2a2a"
-                    strokeWidth="8"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="url(#dailyGradient)"
-                    strokeWidth="8"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={todayOffset}
-                    strokeLinecap="round"
-                    className="gold-glow transition-all duration-500"
-                  />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#dailyGradient)" strokeWidth="8"
+                    strokeDasharray={circumference} strokeDashoffset={todayOffset} strokeLinecap="round"
+                    className="gold-glow transition-all duration-500" />
                   <defs>
                     <linearGradient id="dailyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d4af37" />
-                      <stop offset="100%" stopColor="#f0d060" />
+                      <stop offset="0%" stopColor="#d4af37" /><stop offset="100%" stopColor="#f0d060" />
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">
-                    {todayStats.percentage}%
-                  </span>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">{todayStats.percentage}%</span>
                 </div>
               </div>
             </div>
