@@ -459,31 +459,16 @@ export default function HabitsPage() {
                       <ArchiveRestore className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Restore</span>
                     </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-[#707070] hover:text-[#f5f5f5] hover:bg-[rgba(212,175,55,0.1)]"
-                          disabled={isOperating}
-                        >
-                          <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="glass-card rounded-xl"
-                      >
-                        <DropdownMenuItem
-                          className="text-[#e74c3c] hover:text-[#e74c3c] hover:bg-[rgba(231,76,60,0.1)] cursor-pointer"
-                          onClick={() => handleDelete(habit.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Permanently
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-[#e74c3c] hover:text-[#e74c3c] hover:bg-[rgba(231,76,60,0.1)]"
+                      onClick={() => handleDelete(habit.id)}
+                      disabled={isOperating}
+                    >
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Delete</span>
+                    </Button>
                   </div>
                 </Card>
               ))}
