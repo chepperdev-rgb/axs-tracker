@@ -4,6 +4,14 @@ import { habits, habitLogs, monthlyPlans } from '@/db/schema'
 import { eq, and, gte, lte, sql } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 
+// Format Date as YYYY-MM-DD (local, not UTC)
+function fmt(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -15,7 +23,7 @@ export async function GET() {
 
     const userId = user.id
     const now = new Date()
-    const today = now.toISOString().split('T')[0]
+    const today = fmt(now)
 
     // Get current week bounds (Monday to Sunday)
     const dayOfWeek = now.getDay()
@@ -23,22 +31,22 @@ export async function GET() {
     const weekStart = new Date(now)
     weekStart.setDate(now.getDate() + mondayOffset)
     weekStart.setHours(0, 0, 0, 0)
-    const weekStartStr = weekStart.toISOString().split('T')[0]
+    const weekStartStr = fmt(weekStart)
 
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
-    const weekEndStr = weekEnd.toISOString().split('T')[0]
+    const weekEndStr = fmt(weekEnd)
 
     // Get current month bounds
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    const monthStartStr = monthStart.toISOString().split('T')[0]
-    const monthEndStr = monthEnd.toISOString().split('T')[0]
+    const monthStartStr = fmt(monthStart)
+    const monthEndStr = fmt(monthEnd)
 
     // Get last 35 days for heatmap
     const heatmapStart = new Date(now)
     heatmapStart.setDate(now.getDate() - 34)
-    const heatmapStartStr = heatmapStart.toISOString().split('T')[0]
+    const heatmapStartStr = fmt(heatmapStart)
 
     // Get habits for this user that are in the current monthly plan
     const currentYear = now.getFullYear()
@@ -123,19 +131,19 @@ export async function GET() {
     let totalExpectedThisWeek = 0
     let tasksCompletedThisWeek = 0
     const weeklyDataMap: Record<number, { completed: number; expected: number }> = {
-      0: { completed: 0, expected: 0 }, // Monday
-      1: { completed: 0, expected: 0 }, // Tuesday
-      2: { completed: 0, expected: 0 }, // Wednesday
-      3: { completed: 0, expected: 0 }, // Thursday
-      4: { completed: 0, expected: 0 }, // Friday
-      5: { completed: 0, expected: 0 }, // Saturday
-      6: { completed: 0, expected: 0 }, // Sunday
+      0: { completed: 0, expected: 0 },
+      1: { completed: 0, expected: 0 },
+      2: { completed: 0, expected: 0 },
+      3: { completed: 0, expected: 0 },
+      4: { completed: 0, expected: 0 },
+      5: { completed: 0, expected: 0 },
+      6: { completed: 0, expected: 0 },
     }
 
     for (let i = 0; i <= 6; i++) {
       const date = new Date(weekStart)
       date.setDate(weekStart.getDate() + i)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = fmt(date)
 
       // Only count days up to today
       if (dateStr > today) continue
@@ -185,10 +193,9 @@ export async function GET() {
     // Today's stats
     let totalTasksToday = 0
     let tasksCompletedToday = 0
-    const todayDate = new Date(today)
 
     for (const habit of userHabitsInPlan) {
-      if (shouldHabitBeOnDay(habit, todayDate)) {
+      if (shouldHabitBeOnDay(habit, now)) {
         totalTasksToday++
         const isCompleted = weeklyLogs.some(
           log => log.habitId === habit.habitId && log.date === today
@@ -225,7 +232,7 @@ export async function GET() {
 
     for (let day = 1; day <= currentDayOfMonth; day++) {
       const date = new Date(now.getFullYear(), now.getMonth(), day)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = fmt(date)
 
       for (const habit of userHabitsInPlan) {
         if (shouldHabitBeOnDay(habit, date)) {
@@ -246,26 +253,23 @@ export async function GET() {
       ? Math.round((tasksCompletedThisMonth / totalExpectedThisMonth) * 100)
       : 0
 
-    // Check-ins is total completed this month
     const checkIns = monthlyLogs.length
-
-    // Active days is number of unique days with at least one completion
     const activeDays = activeDaysSet.size
 
     // Calculate best streak
     let bestStreak = 0
     let currentStreak = 0
-
-    // Get all dates in month sorted
     const sortedDates = Array.from(activeDaysSet).sort()
 
     for (let i = 0; i < sortedDates.length; i++) {
       if (i === 0) {
         currentStreak = 1
       } else {
-        const prevDate = new Date(sortedDates[i - 1])
-        const currDate = new Date(sortedDates[i])
-        const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24))
+        const [py, pm, pd] = sortedDates[i - 1].split('-').map(Number)
+        const [cy, cm, cd] = sortedDates[i].split('-').map(Number)
+        const prevDate = new Date(py, pm - 1, pd)
+        const currDate = new Date(cy, cm - 1, cd)
+        const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24))
 
         if (diffDays === 1) {
           currentStreak++
@@ -276,8 +280,8 @@ export async function GET() {
       bestStreak = Math.max(bestStreak, currentStreak)
     }
 
-    // Calculate monthly score (completion percentage + streak bonus)
-    const streakBonus = Math.min(bestStreak * 2, 20) // Max 20 points from streak
+    // Calculate monthly score
+    const streakBonus = Math.min(bestStreak * 2, 20)
     const monthlyScore = Math.min(Math.round(monthlyCompletion * 0.8 + streakBonus), 100)
 
     // Calculate completion ratio
@@ -307,7 +311,7 @@ export async function GET() {
     for (let i = 0; i < 35; i++) {
       const date = new Date(heatmapStart)
       date.setDate(heatmapStart.getDate() + i)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = fmt(date)
 
       if (dateStr > today) {
         heatmapData.push({ date: dateStr, percentage: 0 })
