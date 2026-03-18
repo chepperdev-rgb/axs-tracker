@@ -10,7 +10,7 @@ export interface DashboardStats {
   totalTasksThisWeek: number
   tasksCompletedToday: number
   totalTasksToday: number
-  bestDay: { day: string; percentage: number }
+  bestDay: { day: number | string; percentage: number }
   monthlyCompletion: number
   checkIns: number
   activeDays: number

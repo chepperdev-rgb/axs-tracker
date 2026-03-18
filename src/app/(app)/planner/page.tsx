@@ -4,7 +4,6 @@ import { useState, useMemo, useRef, useEffect, KeyboardEvent } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle, Pencil } from 'lucide-react'
 import {
   useTasks,

@@ -348,7 +348,7 @@ export async function GET() {
       totalTasksThisWeek: totalExpectedThisWeek,
       tasksCompletedToday,
       totalTasksToday,
-      bestDay: { day: dayNames[bestDayIndex], percentage: bestDayPercentage },
+      bestDay: { day: bestDayIndex, percentage: bestDayPercentage },
       monthlyCompletion,
       checkIns,
       activeDays,

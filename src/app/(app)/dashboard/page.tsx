@@ -39,60 +39,6 @@ function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: 
   return <>{displayValue}</>
 }
 
-function AnimatedDonut({ percentage, monthLabel = 'This Month' }: { percentage: number; monthLabel?: string }) {
-  const [offset, setOffset] = useState(251.2)
-  const circumference = 251.2
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const newOffset = circumference - (circumference * percentage) / 100
-      setOffset(newOffset)
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [percentage])
-
-  return (
-    <div className="relative w-28 h-28 sm:w-40 sm:h-40">
-      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          stroke="#2a2a2a"
-          strokeWidth="10"
-        />
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          stroke="url(#goldGradient)"
-          strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="gold-glow transition-all duration-1000 ease-out"
-        />
-        <defs>
-          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#d4af37" />
-            <stop offset="50%" stopColor="#f0d060" />
-            <stop offset="100%" stopColor="#d4af37" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl sm:text-3xl font-bold text-[#d4af37] font-mono">
-          <AnimatedNumber value={percentage} />%
-        </span>
-        <span className="text-[10px] sm:text-xs text-[#707070] uppercase">{monthLabel}</span>
-      </div>
-    </div>
-  )
-}
-
 function WeeklyBarChart({ data, days }: { data: number[]; days?: string[] }) {
   const dayLabels = days ?? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -127,7 +73,7 @@ function CumulativeChart({ data }: { data: { date: string; percentage: number }[
     return () => clearTimeout(timer)
   }, [])
 
-  if (!data || data.length === 0) return null
+  if (!data || data.length < 2) return null
 
   // Build cumulative data — only grows or stays flat
   const cumulative: number[] = []
@@ -338,7 +284,12 @@ export default function DashboardPage() {
                   <div className="flex justify-between">
                     <span className="text-[#a0a0a0]">{t.dashboard.bestDay}</span>
                     <span className="text-[#d4af37]">
-                      {stats?.bestDay?.day || 'N/A'} ({stats?.bestDay?.percentage || 0}%)
+                      {(() => {
+                        const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
+                        const idx = stats?.bestDay?.day
+                        const dayName = typeof idx === 'number' ? t.planner.weekDays[dayKeys[idx]] : 'N/A'
+                        return `${dayName} (${stats?.bestDay?.percentage || 0}%)`
+                      })()}
                     </span>
                   </div>
                 </div>

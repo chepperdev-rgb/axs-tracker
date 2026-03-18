@@ -58,7 +58,7 @@ function formatDate(year: number, month: number, day: number): string {
 
 export default function MonthlyPage() {
   const t = useTranslations()
-  const today = new Date()
+  const [today] = useState(() => new Date())
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
