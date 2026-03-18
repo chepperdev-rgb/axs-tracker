@@ -118,59 +118,111 @@ function AnimatedGauge({
 }
 
 // ─── Tachometer (half-circle speedometer) ───────────────────────────
-function AnimatedTachometer({
-  targetPercent,
-  delay,
-}: {
-  targetPercent: number
-  delay: number
-}) {
+function AnimatedTachometer({ delay }: { delay: number }) {
   const [progress, setProgress] = useState(0)
   const [visible, setVisible] = useState(false)
+  const rafRef = useRef<number>(0)
 
   useEffect(() => {
     const showTimer = setTimeout(() => setVisible(true), delay)
-    const animTimer = setTimeout(() => {
-      const duration = 2200
-      const start = performance.now()
+
+    // Looping animation: 0 → 95 (into red zone) → 45 → 95 → 45 ...
+    const startTimer = setTimeout(() => {
+      let phase: 'initial' | 'up' | 'down' = 'initial'
+      let start = performance.now()
+      const durations = { initial: 2400, up: 2800, down: 2000 }
+      const targets = { initial: [0, 95], up: [45, 95], down: [95, 45] }
+
+      const easeInOutCubic = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
       const animate = (now: number) => {
         const elapsed = now - start
-        const t = Math.min(elapsed / duration, 1)
-        const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t)
-        setProgress(eased * targetPercent)
-        if (t < 1) requestAnimationFrame(animate)
+        const dur = durations[phase]
+        const t = Math.min(elapsed / dur, 1)
+        const eased = easeInOutCubic(t)
+        const [from, to] = targets[phase]
+        const val = from + (to - from) * eased
+        setProgress(val)
+
+        if (t >= 1) {
+          // Switch phase
+          if (phase === 'initial' || phase === 'up') {
+            phase = 'down'
+          } else {
+            phase = 'up'
+          }
+          start = performance.now()
+        }
+        rafRef.current = requestAnimationFrame(animate)
       }
-      requestAnimationFrame(animate)
+      rafRef.current = requestAnimationFrame(animate)
     }, delay + 400)
+
     return () => {
       clearTimeout(showTimer)
-      clearTimeout(animTimer)
+      clearTimeout(startTimer)
+      cancelAnimationFrame(rafRef.current)
     }
-  }, [targetPercent, delay])
+  }, [delay])
 
   const needleAngle = -135 + (progress / 100) * 270
   const w = 280
-  const h = 280
+  const cx = w / 2
+  const cy = w / 2
+  // Red zone starts at 80%
+  const inRedZone = progress >= 80
+
+  // Arc color: gold for 0-80%, transitions to red for 80-100%
+  const getTickColor = (tickPercent: number) => {
+    if (tickPercent > progress) return '#3a3a3a'
+    if (tickPercent >= 80) return '#e74c3c'
+    return '#d4af37'
+  }
+
+  const getNumberColor = (num: number) => {
+    if (num > progress) return '#505050'
+    if (num >= 80) return '#e74c3c'
+    return '#d4af37'
+  }
 
   return (
     <div
       className="relative"
       style={{
+        width: w,
+        height: w / 2 + 40,
         opacity: visible ? 1 : 0,
         transform: visible ? 'scale(1)' : 'scale(0.5)',
         transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      <svg width={w} height={w} viewBox={`0 0 ${w} ${h}`} className="drop-shadow-[0_0_60px_rgba(212,175,55,0.25)]">
+      <svg
+        width={w}
+        height={w / 2 + 40}
+        viewBox={`0 ${cy - cy} ${w} ${cy + 40}`}
+        className="drop-shadow-[0_0_60px_rgba(212,175,55,0.25)]"
+        style={{
+          filter: inRedZone
+            ? `drop-shadow(0 0 40px rgba(231,76,60,${0.15 + (progress - 80) * 0.015}))`
+            : 'drop-shadow(0 0 60px rgba(212,175,55,0.25))',
+          transition: 'filter 0.5s',
+        }}
+      >
         <defs>
           <linearGradient id="tachGold" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#8a6a2a" />
-            <stop offset="50%" stopColor="#f0d060" />
+            <stop offset="70%" stopColor="#f0d060" />
             <stop offset="100%" stopColor="#d4af37" />
           </linearGradient>
+          <linearGradient id="tachRed" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#d4af37" />
+            <stop offset="40%" stopColor="#e67e22" />
+            <stop offset="100%" stopColor="#e74c3c" />
+          </linearGradient>
           <linearGradient id="needleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#f0d060" />
-            <stop offset="100%" stopColor="#b8942e" />
+            <stop offset="0%" stopColor={inRedZone ? '#ff6b6b' : '#f0d060'} />
+            <stop offset="100%" stopColor={inRedZone ? '#c0392b' : '#b8942e'} />
           </linearGradient>
           <filter id="tachGlow">
             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -182,36 +234,72 @@ function AnimatedTachometer({
         </defs>
 
         {/* Outer ring */}
-        <circle cx={w/2} cy={h/2} r={130} fill="none" stroke="#1a1a1a" strokeWidth="3" />
-        <circle cx={w/2} cy={h/2} r={122} fill="none" stroke="#1c1c1c" strokeWidth="1" />
+        <circle cx={cx} cy={cy} r={130} fill="none" stroke="#1a1a1a" strokeWidth="3" />
+        <circle cx={cx} cy={cy} r={122} fill="none" stroke="#1c1c1c" strokeWidth="1" />
 
         {/* Background arc */}
         <path
-          d={`M ${w/2-110} ${h/2+55} A 110 110 0 1 1 ${w/2+110} ${h/2+55}`}
+          d={`M ${cx - 110} ${cy + 55} A 110 110 0 1 1 ${cx + 110} ${cy + 55}`}
           fill="none" stroke="#1c1c1c" strokeWidth="18" strokeLinecap="round"
         />
-        {/* Progress arc */}
+
+        {/* Red zone background (80-100%) — always visible */}
+        {(() => {
+          const startAngle = -135 + 0.8 * 270
+          const endAngle = -135 + 270
+          const r = 110
+          const x1 = cx + r * Math.cos((startAngle * Math.PI) / 180)
+          const y1 = cy + r * Math.sin((startAngle * Math.PI) / 180)
+          const x2 = cx + r * Math.cos((endAngle * Math.PI) / 180)
+          const y2 = cy + r * Math.sin((endAngle * Math.PI) / 180)
+          return (
+            <path
+              d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
+              fill="none" stroke="#3a1515" strokeWidth="18" strokeLinecap="round"
+            />
+          )
+        })()}
+
+        {/* Progress arc — gold portion (0 to min(progress, 80)) */}
         <path
-          d={`M ${w/2-110} ${h/2+55} A 110 110 0 1 1 ${w/2+110} ${h/2+55}`}
+          d={`M ${cx - 110} ${cy + 55} A 110 110 0 1 1 ${cx + 110} ${cy + 55}`}
           fill="none" stroke="url(#tachGold)" strokeWidth="18" strokeLinecap="round"
           strokeDasharray="480"
-          strokeDashoffset={480 - (progress / 100) * 480}
+          strokeDashoffset={480 - (Math.min(progress, 80) / 100) * 480}
           filter="url(#tachGlow)"
         />
+
+        {/* Progress arc — red portion (80 to progress if > 80) */}
+        {progress > 80 && (() => {
+          const startAngle = -135 + 0.8 * 270
+          const sweepFraction = (progress - 80) / 100
+          const totalArc = 480
+          const r = 110
+          const x1 = cx + r * Math.cos((startAngle * Math.PI) / 180)
+          const y1 = cy + r * Math.sin((startAngle * Math.PI) / 180)
+          return (
+            <path
+              d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${cx + 110} ${cy + 55}`}
+              fill="none" stroke="url(#tachRed)" strokeWidth="18" strokeLinecap="round"
+              strokeDasharray={totalArc}
+              strokeDashoffset={totalArc - sweepFraction * totalArc}
+              filter="url(#tachGlow)"
+              style={{ transition: 'stroke-dashoffset 0.05s linear' }}
+            />
+          )
+        })()}
 
         {/* Tick marks */}
         {[...Array(11)].map((_, i) => {
           const angle = -135 + i * 27
           const rad = (angle * Math.PI) / 180
-          const cx = w / 2, cy = h / 2
           const r1 = 90, r2 = 102
-          const active = progress >= i * 10
           return (
             <line
               key={i}
               x1={cx + r1 * Math.cos(rad)} y1={cy + r1 * Math.sin(rad)}
               x2={cx + r2 * Math.cos(rad)} y2={cy + r2 * Math.sin(rad)}
-              stroke={active ? '#d4af37' : '#3a3a3a'} strokeWidth={i % 5 === 0 ? 3 : 2}
+              stroke={getTickColor(i * 10)} strokeWidth={i % 5 === 0 ? 3 : 2}
               style={{ transition: 'stroke 0.3s' }}
             />
           )
@@ -221,12 +309,11 @@ function AnimatedTachometer({
         {[0, 20, 40, 60, 80, 100].map((num, i) => {
           const angle = -135 + i * 54
           const rad = (angle * Math.PI) / 180
-          const cx = w / 2, cy = h / 2, r = 76
-          const active = progress >= num
+          const r = 76
           return (
             <text key={num}
               x={cx + r * Math.cos(rad)} y={cy + r * Math.sin(rad)}
-              fill={active ? '#d4af37' : '#505050'}
+              fill={getNumberColor(num)}
               fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle"
               fontFamily="system-ui" style={{ transition: 'fill 0.3s' }}
             >{num}</text>
@@ -234,35 +321,47 @@ function AnimatedTachometer({
         })}
 
         {/* Center hub */}
-        <circle cx={w/2} cy={h/2} r={20} fill="#1a1a1a" stroke="#d4af37" strokeWidth="2" />
-        <circle cx={w/2} cy={h/2} r={14} fill="#1c1c1c" />
+        <circle cx={cx} cy={cy} r={20} fill="#1a1a1a"
+          stroke={inRedZone ? '#e74c3c' : '#d4af37'} strokeWidth="2"
+          style={{ transition: 'stroke 0.5s' }}
+        />
+        <circle cx={cx} cy={cy} r={14} fill="#1c1c1c" />
 
         {/* Needle */}
         <g
           filter="url(#tachGlow)"
           style={{
             transform: `rotate(${needleAngle}deg)`,
-            transformOrigin: `${w/2}px ${h/2}px`,
+            transformOrigin: `${cx}px ${cy}px`,
             transition: 'transform 0.05s linear',
           }}
         >
           <polygon
-            points={`${w/2},${h/2-85} ${w/2-4},${h/2-5} ${w/2},${h/2+5} ${w/2+4},${h/2-5}`}
+            points={`${cx},${cy - 85} ${cx - 4},${cy - 5} ${cx},${cy + 5} ${cx + 4},${cy - 5}`}
             fill="url(#needleGrad)"
           />
-          <circle cx={w/2} cy={h/2} r={8} fill="#d4af37" />
+          <circle cx={cx} cy={cy} r={8}
+            fill={inRedZone ? '#e74c3c' : '#d4af37'}
+            style={{ transition: 'fill 0.3s' }}
+          />
         </g>
       </svg>
 
-      {/* Center text */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: 50 }}>
+      {/* Center text — positioned relative, not overlapping */}
+      <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: 0 }}>
         <span
           className="text-4xl font-bold font-mono tabular-nums"
-          style={{ color: '#d4af37', textShadow: '0 0 25px rgba(212,175,55,0.5)' }}
+          style={{
+            color: inRedZone ? '#e74c3c' : '#d4af37',
+            textShadow: inRedZone
+              ? '0 0 25px rgba(231,76,60,0.5)'
+              : '0 0 25px rgba(212,175,55,0.5)',
+            transition: 'color 0.5s, text-shadow 0.5s',
+          }}
         >
           {Math.round(progress)}%
         </span>
-        <span className="text-xs text-[#707070] uppercase tracking-[0.2em] mt-1">
+        <span className="text-xs text-[#707070] uppercase tracking-[0.2em] mt-0.5">
           Productivity
         </span>
       </div>
@@ -422,7 +521,7 @@ export default function LandingPage() {
         <div className="mt-16 md:mt-24 flex flex-col items-center gap-12 w-full max-w-5xl">
 
           {/* Central tachometer */}
-          <AnimatedTachometer targetPercent={87} delay={1300} />
+          <AnimatedTachometer delay={1300} />
 
           {/* Circular gauges row */}
           <div className="flex flex-wrap justify-center gap-8 md:gap-14">
