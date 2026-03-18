@@ -219,3 +219,21 @@ export function isToday(dateString: string): boolean {
     today.getDate() === date.getDate()
   )
 }
+
+// Check if a date is in the past (before today)
+export function isPast(dateString: string): boolean {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const date = new Date(dateString)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime() < today.getTime()
+}
+
+// Check if a date is in the future (after today)
+export function isFuture(dateString: string): boolean {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const date = new Date(dateString)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime() > today.getTime()
+}

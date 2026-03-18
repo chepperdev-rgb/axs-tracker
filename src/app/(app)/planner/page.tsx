@@ -5,13 +5,15 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon } from 'lucide-react'
 import {
   useTasks,
   getWeekStart,
   formatWeekRange,
   getDateForDay,
   isToday,
+  isPast,
+  isFuture,
 } from '@/hooks/useTasks'
 import { Task } from '@/db/schema'
 import { useTranslations } from '@/providers/i18n-provider'
@@ -118,6 +120,8 @@ export default function PlannerPage() {
   }
 
   const handleToggleComplete = (task: Task) => {
+    const taskDate = typeof task.date === 'string' ? task.date : task.date
+    if (!isToday(taskDate)) return
     updateTask({ id: task.id, completed: !task.completed })
   }
 
@@ -211,6 +215,8 @@ export default function PlannerPage() {
               const percentage =
                 totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
               const isTodayDate = isToday(date)
+              const isPastDate = isPast(date)
+              const isFutureDate = isFuture(date)
 
               return (
                 <Card
@@ -218,6 +224,7 @@ export default function PlannerPage() {
                   className={`
                     overflow-hidden p-0
                     ${isTodayDate ? 'border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' : ''}
+                    ${isPastDate ? 'opacity-60' : ''}
                   `}
                 >
                   {/* Day Header */}
@@ -231,7 +238,7 @@ export default function PlannerPage() {
                       <span
                         className={`
                           text-xs sm:text-sm font-semibold uppercase
-                          ${isTodayDate ? 'text-[#d4af37] gold-glow' : 'text-[#f5f5f5]'}
+                          ${isTodayDate ? 'text-[#d4af37] gold-glow' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
                         `}
                       >
                         <span className="sm:hidden">{weekDaysShort[index]}</span>
@@ -243,7 +250,11 @@ export default function PlannerPage() {
                     </div>
                     <div className="h-1 bg-[#2a2a2a] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#d4af37] to-[#f0d060] rounded-full transition-all"
+                        className={`h-full rounded-full transition-all ${
+                          isPastDate
+                            ? 'bg-[#3a3a3a]'
+                            : 'bg-gradient-to-r from-[#d4af37] to-[#f0d060]'
+                        }`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -256,36 +267,83 @@ export default function PlannerPage() {
                         {t.common.noTasks}
                       </p>
                     ) : (
-                      dayTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)] transition-colors"
-                        >
-                          <Checkbox
-                            checked={task.completed}
-                            onCheckedChange={() => handleToggleComplete(task)}
-                            className={`
-                              mt-0.5 border-[#2a2a2a] w-3.5 h-3.5 sm:w-4 sm:h-4
-                              data-[state=checked]:bg-[#d4af37]
-                              data-[state=checked]:border-[#d4af37]
-                            `}
-                          />
-                          <span
-                            className={`
-                              text-[10px] sm:text-sm leading-tight flex-1
-                              ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}
-                            `}
+                      dayTasks.map((task) => {
+                        // Past: show gray X for incomplete, gray check for completed
+                        if (isPastDate) {
+                          return (
+                            <div
+                              key={task.id}
+                              className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg"
+                            >
+                              <div className="mt-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-2 border-[#3a3a3a] flex items-center justify-center flex-shrink-0 bg-[#1c1c1c]">
+                                {task.completed ? (
+                                  <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 sm:w-3 sm:h-3">
+                                    <path d="M2 6L5 9L10 3" stroke="#505050" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                ) : (
+                                  <XIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#505050]" />
+                                )}
+                              </div>
+                              <span className="text-[10px] sm:text-sm leading-tight flex-1 text-[#505050] line-through">
+                                {task.title}
+                              </span>
+                            </div>
+                          )
+                        }
+
+                        // Today: interactive checkboxes
+                        if (isTodayDate) {
+                          return (
+                            <div
+                              key={task.id}
+                              className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)] transition-colors"
+                            >
+                              <Checkbox
+                                checked={task.completed}
+                                onCheckedChange={() => handleToggleComplete(task)}
+                                className={`
+                                  mt-0.5 border-[#2a2a2a] w-3.5 h-3.5 sm:w-4 sm:h-4
+                                  data-[state=checked]:bg-[#d4af37]
+                                  data-[state=checked]:border-[#d4af37]
+                                `}
+                              />
+                              <span
+                                className={`
+                                  text-[10px] sm:text-sm leading-tight flex-1
+                                  ${task.completed ? 'text-[#707070] line-through' : 'text-[#f5f5f5]'}
+                                `}
+                              >
+                                {task.title}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteTask(task.id)}
+                                className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
+                              >
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </button>
+                            </div>
+                          )
+                        }
+
+                        // Future: visible but locked
+                        return (
+                          <div
+                            key={task.id}
+                            className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg"
                           >
-                            {task.title}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteTask(task.id)}
-                            className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
-                          >
-                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      ))
+                            <div className="mt-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-2 border-[#2a2a2a] flex-shrink-0" />
+                            <span className="text-[10px] sm:text-sm leading-tight flex-1 text-[#707070]">
+                              {task.title}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="opacity-0 group-hover:opacity-100 text-[#707070] hover:text-red-400 transition-all"
+                            >
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </div>
+                        )
+                      })
                     )}
 
                     {/* Add Task Input */}
@@ -307,8 +365,8 @@ export default function PlannerPage() {
                       </div>
                     )}
 
-                    {/* Add Task Button */}
-                    {addingTaskForDay !== index && (
+                    {/* Add Task Button — only for today and future */}
+                    {addingTaskForDay !== index && !isPastDate && (
                       <button
                         onClick={() => handleAddTaskClick(index)}
                         className="flex items-center gap-1 sm:gap-2 text-[#707070] hover:text-[#d4af37] text-[10px] sm:text-sm transition-colors w-full p-1.5 sm:p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)]"
