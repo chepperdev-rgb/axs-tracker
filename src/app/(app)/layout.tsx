@@ -16,8 +16,10 @@ export default function AppLayout({
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {children}
       </main>
-      {/* Paywall — blocks content for free users */}
-      <PaywallGuard />
+      {/* Paywall — blocks content for free users (skips when session_id present) */}
+      <Suspense fallback={null}>
+        <PaywallGuard />
+      </Suspense>
       {/* Triggers pricing modal for new users, handles ?showPricing and ?session_id params */}
       <Suspense fallback={null}>
         <PaymentModalTrigger />

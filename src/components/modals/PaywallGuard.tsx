@@ -1,50 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useSearchParams } from 'next/navigation'
 import { usePaymentModalContext } from '@/providers/payment-modal-provider'
 
 /**
  * Paywall guard — checks if user has a paid plan.
  * If plan is 'free', forces PricingModal open and blocks content.
- * Renders a full-screen overlay that prevents interaction with the app.
+ * SKIPS when session_id is in URL (payment being verified).
  */
 export function PaywallGuard() {
   const { openModal, isOpen } = usePaymentModalContext()
-  const [isPaid, setIsPaid] = useState<boolean | null>(null) // null = loading
+  const [isPaid, setIsPaid] = useState<boolean | null>(null)
+  const searchParams = useSearchParams()
+
+  // Skip paywall entirely if session_id is present (Stripe return)
+  const hasSessionId = searchParams.get('session_id')
 
   useEffect(() => {
+    if (hasSessionId) {
+      setIsPaid(true) // let PaymentModalTrigger handle verification
+      return
+    }
+
     const checkPlan = async () => {
       try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { setIsPaid(true); return } // not logged in = let middleware handle
-
-        // Fetch user plan from our API
         const res = await fetch('/api/user/plan')
-        if (!res.ok) { setIsPaid(true); return } // error = don't block
+        if (!res.ok) { setIsPaid(true); return }
         const data = await res.json()
-        const plan = data.plan || 'free'
-        setIsPaid(plan !== 'free')
+        setIsPaid((data.plan || 'free') !== 'free')
       } catch {
-        setIsPaid(true) // on error, don't block
+        setIsPaid(true)
       }
     }
 
     checkPlan()
-  }, [])
+  }, [hasSessionId])
 
-  // If user is on free plan, force pricing modal
   useEffect(() => {
     if (isPaid === false && !isOpen) {
       openModal()
     }
   }, [isPaid, isOpen, openModal])
 
-  // While loading or if paid, render nothing
   if (isPaid !== false) return null
 
-  // Free user — block content with overlay (PricingModal is shown by provider)
   return (
     <div className="fixed inset-0 z-40 bg-[#0a0a0a]/90 backdrop-blur-sm" />
   )
