@@ -59,8 +59,9 @@ export function PricingModal({ open, onOpenChange, blockClose = false }: Pricing
 
         window.location.href = data.url
       } catch (err) {
-        console.error("[PricingModal] checkout error:", err)
-        toast.error(t.messages.checkoutError)
+        const errMsg = err instanceof Error ? err.message : String(err)
+        console.error("[PricingModal] checkout error:", errMsg)
+        toast.error(`${t.messages.checkoutError} (${errMsg})`)
         setLoadingPlan(null)
       }
     },

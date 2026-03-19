@@ -50,7 +50,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const plan =
       Object.entries(PLANS).find(([, p]) => p.priceId === priceId)?.[0] ?? 'premium'
 
-    // Load user record to check for existing Stripe customer
+    // Ensure user exists in DB (may not exist yet if paywall blocks first load)
+    await db
+      .insert(users)
+      .values({ id: authUser.id, email: authUser.email! })
+      .onConflictDoNothing()
+
     const [dbUser] = await db
       .select()
       .from(users)

@@ -13,6 +13,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Ensure user exists in DB
+    await db
+      .insert(users)
+      .values({ id: user.id, email: user.email! })
+      .onConflictDoNothing()
+
     const [dbUser] = await db
       .select({ plan: users.plan, subscriptionStatus: users.subscriptionStatus })
       .from(users)
