@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,10 @@ export default function LoginPage() {
       }
 
       toast.success(t.messages.welcomeBack)
-      router.push('/dashboard')
+      // Redirect to original destination (preserves session_id from Stripe)
+      const params = new URLSearchParams(window.location.search)
+      const redirectTo = params.get('redirectTo') || '/dashboard'
+      router.push(redirectTo)
       router.refresh()
     } catch {
       toast.error(t.messages.unexpectedError)

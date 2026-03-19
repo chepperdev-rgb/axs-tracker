@@ -24,7 +24,9 @@ export async function middleware(request: NextRequest) {
   // If user is not authenticated and trying to access protected route
   if (!user && isProtectedRoute) {
     const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', pathname)
+    // Preserve full path + query params (e.g. session_id from Stripe)
+    const fullPath = pathname + (request.nextUrl.search || '')
+    redirectUrl.searchParams.set('redirectTo', fullPath)
     return NextResponse.redirect(redirectUrl)
   }
 
