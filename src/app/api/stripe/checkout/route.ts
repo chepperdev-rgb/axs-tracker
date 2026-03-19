@@ -73,7 +73,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       mode,
       'line_items[0][price]': priceId,
       'line_items[0][quantity]': '1',
-      success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/dashboard`,
       'metadata[userId]': authUser.id,
       'metadata[plan]': plan,
