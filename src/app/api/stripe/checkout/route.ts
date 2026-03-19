@@ -98,6 +98,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const session = await stripe.checkout.sessions.create(sessionParams)
 
+    if (!session.url) {
+      return NextResponse.json({ error: 'Stripe did not return a checkout URL' }, { status: 500 })
+    }
+
     return NextResponse.json({ url: session.url })
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error)

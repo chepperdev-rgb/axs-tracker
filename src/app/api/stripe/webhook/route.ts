@@ -221,7 +221,10 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const customerId =
     typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
 
-  if (!customerId) return
+  if (!customerId) {
+    console.warn('[stripe/webhook] invoice.payment_failed: missing customerId, skipping')
+    return
+  }
 
   await db
     .update(users)
