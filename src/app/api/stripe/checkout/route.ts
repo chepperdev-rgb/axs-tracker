@@ -54,7 +54,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Create or reuse Stripe customer
-    let customerId = dbUser.stripeCustomerId
+    let customerId: string | null = dbUser.stripeCustomerId
 
     if (!customerId) {
       const customer = await stripePost('/customers', {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Build checkout session params
     const params: Record<string, string> = {
-      customer: customerId,
+      customer: customerId!,
       mode,
       'line_items[0][price]': priceId,
       'line_items[0][quantity]': '1',
