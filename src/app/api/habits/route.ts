@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { habits, monthlyPlans, users } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { seedDefaultHabits } from '@/lib/seed-habits'
+import { hasPaidPlan } from '@/lib/check-plan'
 
 // GET /api/habits - List all habits for the current user
 export async function GET(request: Request) {
@@ -24,6 +25,11 @@ export async function GET(request: Request) {
       .values({ id: user.id, email: user.email! })
       .onConflictDoNothing()
     await seedDefaultHabits(user.id)
+
+    // Check paid plan
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
+    }
 
     // Get query params for filtering
     const { searchParams } = new URL(request.url)
@@ -83,6 +89,10 @@ export async function POST(request: Request) {
         { error: 'Unauthorized' },
         { status: 401 }
       )
+    }
+
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
     }
 
     const body = await request.json()

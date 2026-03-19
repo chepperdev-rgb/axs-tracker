@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { habits, habitLogs, monthlyPlans } from '@/db/schema'
 import { eq, and, gte, lte, sql } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
+import { hasPaidPlan } from '@/lib/check-plan'
 
 // Format Date as YYYY-MM-DD (local, not UTC)
 function fmt(date: Date): string {
@@ -19,6 +20,10 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
     }
 
     const userId = user.id

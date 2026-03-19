@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { hasPaidPlan } from '@/lib/check-plan'
 import { db } from '@/db'
 import { monthlyPlans, habits } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       )
+    }
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -65,6 +69,9 @@ export async function POST(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       )
+    }
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -158,6 +165,9 @@ export async function DELETE(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       )
+    }
+    if (!(await hasPaidPlan(user.id))) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
     }
 
     const body = await request.json()
