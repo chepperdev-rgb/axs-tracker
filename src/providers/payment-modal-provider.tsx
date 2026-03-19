@@ -106,10 +106,27 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
     resetFlags,
   }
 
+  const [blockClose, setBlockClose] = useState(false)
+
+  // Check user plan to determine if close should be blocked
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const checkPlan = async () => {
+      try {
+        const res = await fetch('/api/user/plan')
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.plan === 'free') setBlockClose(true)
+        else setBlockClose(false)
+      } catch { /* ignore */ }
+    }
+    checkPlan()
+  }, [isOpen]) // re-check when modal state changes (after payment)
+
   return (
     <PaymentModalContext.Provider value={value}>
       {children}
-      <PricingModal open={isOpen} onOpenChange={handleOpenChange} />
+      <PricingModal open={isOpen} onOpenChange={handleOpenChange} blockClose={blockClose} />
     </PaymentModalContext.Provider>
   )
 }

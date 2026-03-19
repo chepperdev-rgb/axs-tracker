@@ -12,6 +12,7 @@ import { toast } from "sonner"
 interface PricingModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  blockClose?: boolean
 }
 
 const PLAN_ICONS = {
@@ -24,7 +25,7 @@ const PLAN_ICONS = {
  * PricingModal — 3-column pricing card with Stripe Checkout integration.
  * Matches the dark luxury gold theme of AXS Tracker.
  */
-export function PricingModal({ open, onOpenChange }: PricingModalProps) {
+export function PricingModal({ open, onOpenChange, blockClose = false }: PricingModalProps) {
   const { t } = useI18n()
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
 
@@ -69,7 +70,7 @@ export function PricingModal({ open, onOpenChange }: PricingModalProps) {
   const isLoading = loadingPlan !== null
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={blockClose ? undefined : onOpenChange}>
       <DialogPrimitive.Portal>
         {/* Backdrop */}
         <DialogPrimitive.Overlay
@@ -117,23 +118,25 @@ export function PricingModal({ open, onOpenChange }: PricingModalProps) {
               {t.pricing.subtitle}
             </DialogPrimitive.Description>
 
-            {/* Close button */}
-            <button
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-              className={cn(
-                "absolute top-4 right-4 z-20",
-                "w-8 h-8 rounded-full",
-                "flex items-center justify-center",
-                "bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)]",
-                "text-[#a0a0a0] hover:text-white",
-                "transition-all duration-200",
-                "border border-[rgba(255,255,255,0.08)]",
-                isLoading && "opacity-50 cursor-not-allowed",
-              )}
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {/* Close button — hidden when blockClose */}
+            {!blockClose && (
+              <button
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+                className={cn(
+                  "absolute top-4 right-4 z-20",
+                  "w-8 h-8 rounded-full",
+                  "flex items-center justify-center",
+                  "bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)]",
+                  "text-[#a0a0a0] hover:text-white",
+                  "transition-all duration-200",
+                  "border border-[rgba(255,255,255,0.08)]",
+                  isLoading && "opacity-50 cursor-not-allowed",
+                )}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
 
             {/* Header */}
             <div className="relative pt-8 pb-4 px-6 text-center">
@@ -288,13 +291,15 @@ export function PricingModal({ open, onOpenChange }: PricingModalProps) {
 
             {/* Footer */}
             <div className="px-6 pb-6 text-center">
-              <button
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-                className="text-sm text-[#606060] hover:text-[#a0a0a0] transition-colors duration-200 underline-offset-4 hover:underline"
-              >
-                {t.pricing.maybeLater}
-              </button>
+              {!blockClose && (
+                <button
+                  onClick={() => onOpenChange(false)}
+                  disabled={isLoading}
+                  className="text-sm text-[#606060] hover:text-[#a0a0a0] transition-colors duration-200 underline-offset-4 hover:underline"
+                >
+                  {t.pricing.maybeLater}
+                </button>
+              )}
               <div className="flex justify-center gap-1 mt-4">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="w-1.5 h-1.5 rounded-full bg-[rgba(212,175,55,0.25)]" />

@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { NavBar } from '@/components/layout/NavBar'
 import { PaymentModalTrigger } from '@/components/modals'
+import { PaywallGuard } from '@/components/modals/PaywallGuard'
 
 export default function AppLayout({
   children,
@@ -15,6 +16,8 @@ export default function AppLayout({
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {children}
       </main>
+      {/* Paywall — blocks content for free users */}
+      <PaywallGuard />
       {/* Triggers pricing modal for new users, handles ?showPricing and ?session_id params */}
       <Suspense fallback={null}>
         <PaymentModalTrigger />
