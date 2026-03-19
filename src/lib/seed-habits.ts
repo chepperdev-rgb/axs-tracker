@@ -3,12 +3,12 @@ import { habits, monthlyPlans } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 const DEFAULT_HABITS = [
-  { name: 'Workout / Activity', emoji: '🏋️', category: 'health', frequency: 'daily' },
-  { name: 'Contrast Shower / Cold Exposure', emoji: '🚿', category: 'health', frequency: 'daily' },
-  { name: 'Reading / Learning (30 min)', emoji: '📚', category: 'growth', frequency: 'daily' },
-  { name: 'Evening Day Planning', emoji: '📝', category: 'productivity', frequency: 'daily' },
-  { name: 'Sleep Norm (7-8 hours)', emoji: '😴', category: 'health', frequency: 'daily' },
-  { name: 'Wake Up at 5:00', emoji: '⏰', category: 'productivity', frequency: 'daily' },
+  { name: 'Workout / Activity', emoji: '🏋️', category: 'health', frequency: 'daily', translationKey: 'workout' },
+  { name: 'Contrast Shower / Cold Exposure', emoji: '🚿', category: 'health', frequency: 'daily', translationKey: 'coldShower' },
+  { name: 'Reading / Learning (30 min)', emoji: '📚', category: 'growth', frequency: 'daily', translationKey: 'reading' },
+  { name: 'Evening Day Planning', emoji: '📝', category: 'productivity', frequency: 'daily', translationKey: 'planning' },
+  { name: 'Sleep Norm (7-8 hours)', emoji: '😴', category: 'health', frequency: 'daily', translationKey: 'sleep' },
+  { name: 'Wake Up at 5:00', emoji: '⏰', category: 'productivity', frequency: 'daily', translationKey: 'wakeUp' },
 ] as const
 
 /**
@@ -18,7 +18,6 @@ const DEFAULT_HABITS = [
  */
 export async function seedDefaultHabits(userId: string) {
   try {
-    // Check if user already has habits
     const existing = await db
       .select({ id: habits.id })
       .from(habits)
@@ -31,7 +30,6 @@ export async function seedDefaultHabits(userId: string) {
     const year = now.getFullYear()
     const month = now.getMonth() + 1
 
-    // Insert all default habits
     const inserted = await db
       .insert(habits)
       .values(
@@ -41,12 +39,12 @@ export async function seedDefaultHabits(userId: string) {
           emoji: h.emoji,
           category: h.category,
           frequency: h.frequency,
+          translationKey: h.translationKey,
           sortOrder: i,
         }))
       )
       .returning({ id: habits.id })
 
-    // Add all to current month plan
     if (inserted.length > 0) {
       await db
         .insert(monthlyPlans)

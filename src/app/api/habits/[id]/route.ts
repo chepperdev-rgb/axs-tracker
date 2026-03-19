@@ -65,7 +65,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { name, emoji, category, frequency, frequencyDays, sortOrder, isArchived } = body
+    const { name, emoji, category, frequency, frequencyDays, sortOrder, isArchived, locale, translations } = body
 
     // Check if habit belongs to user
     const [existingHabit] = await db
@@ -88,7 +88,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     // Build update object with only provided fields
     const updateData: Record<string, unknown> = {}
-    if (name !== undefined) updateData.name = name.trim()
+    if (name !== undefined) {
+      updateData.name = name.trim()
+      // When user edits name, clear translationKey (no longer a preset)
+      updateData.translationKey = null
+      // Update translations for the current locale
+      if (locale) {
+        const existingTranslations = (existingHabit.translations as Record<string, string>) || {}
+        updateData.translations = { ...existingTranslations, [locale]: name.trim() }
+      }
+    }
+    if (translations !== undefined) updateData.translations = translations
     if (emoji !== undefined) updateData.emoji = emoji
     if (category !== undefined) updateData.category = category
     if (frequency !== undefined) updateData.frequency = frequency

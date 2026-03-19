@@ -23,6 +23,7 @@ interface CreateHabitInput {
   frequency?: string
   frequencyDays?: number[]
   addToCurrentMonth?: boolean
+  locale?: string
 }
 
 interface UpdateHabitInput {
@@ -34,6 +35,7 @@ interface UpdateHabitInput {
   frequencyDays?: number[]
   sortOrder?: number
   isArchived?: boolean
+  locale?: string
 }
 
 interface FetchHabitsOptions {

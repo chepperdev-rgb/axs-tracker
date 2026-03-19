@@ -9,6 +9,8 @@ export const habits = pgTable('habits', {
   category: text('category'),
   frequency: text('frequency').notNull().default('daily'),
   frequencyDays: jsonb('frequency_days'),
+  translationKey: text('translation_key'),
+  translations: jsonb('translations'),
   isArchived: boolean('is_archived').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

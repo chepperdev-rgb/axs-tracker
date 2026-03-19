@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check, Star, Plus, Loader2, X as XIcon } from 'lucide-react'
-import { useTranslations } from '@/providers/i18n-provider'
+import { useTranslations, useI18n } from '@/providers/i18n-provider'
+import { getHabitName } from '@/lib/habit-name'
 import { CircularGauge } from '@/components/ui/tachometer-gauge'
 import {
   Select,
@@ -58,6 +59,7 @@ function formatDate(year: number, month: number, day: number): string {
 
 export default function MonthlyPage() {
   const t = useTranslations()
+  const { locale } = useI18n()
   const [today] = useState(() => new Date())
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1)
@@ -340,7 +342,7 @@ export default function MonthlyPage() {
                       <Star className="w-3 h-3 sm:w-4 sm:h-4 text-[#d4af37] flex-shrink-0" />
                     )}
                     <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium">
-                      {habit.name}
+                      {getHabitName(habit, locale, t)}
                     </span>
                   </div>
 
@@ -444,7 +446,7 @@ export default function MonthlyPage() {
                     <div className="mt-2">
                       <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium flex items-center justify-center gap-1">
                         {habit.emoji && <span>{habit.emoji}</span>}
-                        {habit.name}
+                        {getHabitName(habit, locale, t)}
                       </span>
                       <span className="text-[10px] sm:text-xs text-[#707070] block mt-0.5">
                         {completedCount}/{daysInMonth} {t.common.done}
@@ -525,7 +527,7 @@ export default function MonthlyPage() {
                         <Star className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
                       )}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm text-[#f5f5f5] font-medium truncate">{habit.name}</span>
+                        <span className="text-sm text-[#f5f5f5] font-medium truncate">{getHabitName(habit, locale, t)}</span>
                         {habit.category && (
                           <span className="text-[10px] text-[#707070] uppercase tracking-wider">{habit.category}</span>
                         )}

@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { name, emoji, category, frequency, frequencyDays, addToCurrentMonth } = body
+    const { name, emoji, category, frequency, frequencyDays, addToCurrentMonth, locale, translations } = body
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json(
@@ -116,6 +116,9 @@ export async function POST(request: Request) {
       ? (existingHabits[0].sortOrder || 0) + 1
       : 0
 
+    // Build translations object: store habit name per locale
+    const habitTranslations = translations || (locale ? { [locale]: name.trim() } : null)
+
     // Create the habit
     const [newHabit] = await db
       .insert(habits)
@@ -126,6 +129,7 @@ export async function POST(request: Request) {
         category: category || null,
         frequency: frequency || 'daily',
         frequencyDays: frequencyDays || null,
+        translations: habitTranslations,
         sortOrder: nextSortOrder,
       })
       .returning()

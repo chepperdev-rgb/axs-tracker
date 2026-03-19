@@ -1,0 +1,2 @@
+ALTER TABLE habits ADD COLUMN IF NOT EXISTS translation_key TEXT;
+ALTER TABLE habits ADD COLUMN IF NOT EXISTS translations JSONB;

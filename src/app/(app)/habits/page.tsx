@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useHabits, type HabitWithMonthStatus } from '@/hooks/use-habits'
 import { toast } from 'sonner'
-import { useTranslations } from '@/providers/i18n-provider'
+import { useTranslations, useI18n } from '@/providers/i18n-provider'
 import type { Messages } from '@/lib/i18n'
+import { getHabitName } from '@/lib/habit-name'
 
 // ─── Edit Modal ─────────────────────────────────────────────────────
 function EditHabitModal({
@@ -147,6 +148,7 @@ function EditHabitModal({
 // ═══════════════════════════════════════════════════════════════════════
 export default function HabitsPage() {
   const t = useTranslations()
+  const { locale } = useI18n()
   const [newHabit, setNewHabit] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [editingHabit, setEditingHabit] = useState<HabitWithMonthStatus | null>(null)
@@ -181,7 +183,7 @@ export default function HabitsPage() {
     }
 
     try {
-      await createHabit({ name: newHabit.trim() })
+      await createHabit({ name: newHabit.trim(), locale })
       setNewHabit('')
       toast.success(t.messages.habitAdded)
     } catch (err) {
@@ -197,6 +199,7 @@ export default function HabitsPage() {
         name: data.name,
         emoji: data.emoji || null,
         category: data.category || null,
+        locale,
       })
       setEditingHabit(null)
       toast.success(t.common.habitUpdated)
@@ -351,7 +354,7 @@ export default function HabitsPage() {
                   <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37] flex-shrink-0 gold-glow" />
                 )}
                 <div className="flex flex-col">
-                  <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{habit.name}</span>
+                  <span className="text-sm sm:text-base text-[#f5f5f5] font-medium">{getHabitName(habit, locale, t)}</span>
                   {habit.category && (
                     <span className="text-[10px] text-[#707070] uppercase tracking-wider">{habit.category}</span>
                   )}
@@ -457,7 +460,7 @@ export default function HabitsPage() {
                     ) : (
                       <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#707070] flex-shrink-0" />
                     )}
-                    <span className="text-sm sm:text-base text-[#707070] font-medium line-through">{habit.name}</span>
+                    <span className="text-sm sm:text-base text-[#707070] font-medium line-through">{getHabitName(habit, locale, t)}</span>
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
