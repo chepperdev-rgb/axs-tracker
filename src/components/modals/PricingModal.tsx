@@ -46,12 +46,16 @@ export function PricingModal({ open, onOpenChange }: PricingModalProps) {
           body: JSON.stringify({ priceId: plan.priceId, mode: plan.mode }),
         })
 
+        const data = await res.json()
+
         if (!res.ok) {
-          const data = (await res.json()) as { error?: string }
           throw new Error(data.error ?? "Checkout failed")
         }
 
-        const data = (await res.json()) as { url: string }
+        if (!data.url) {
+          throw new Error("No checkout URL returned")
+        }
+
         window.location.href = data.url
       } catch (err) {
         console.error("[PricingModal] checkout error:", err)

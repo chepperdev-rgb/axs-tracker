@@ -100,7 +100,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('[stripe/checkout] error:', JSON.stringify(error, null, 2))
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errMsg = error instanceof Error ? error.message : String(error)
+    console.error('[stripe/checkout] error:', errMsg)
+    return NextResponse.json({ error: errMsg }, { status: 500 })
   }
 }
