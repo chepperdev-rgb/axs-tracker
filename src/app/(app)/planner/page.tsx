@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect, KeyboardEvent } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle, Pencil } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, X as XIcon, Check, Trophy, TrendingUp, AlertTriangle, Pencil, ArrowRight } from 'lucide-react'
 import {
   useTasks,
   getWeekStart,
@@ -29,6 +29,9 @@ export default function PlannerPage() {
   const [editingTask, setEditingTask] = useState<{ id: string; title: string } | null>(null)
   const todayCardRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [showUnfinishedPopup, setShowUnfinishedPopup] = useState(false)
+  const [unfinishedTasks, setUnfinishedTasks] = useState<Task[]>([])
+  const [processingUnfinished, setProcessingUnfinished] = useState(false)
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, isCreating } =
     useTasks(weekStart)
@@ -42,6 +45,23 @@ export default function PlannerPage() {
       container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
     }
   }, [isLoading, weekStart])
+
+  // Check for unfinished tasks from past days (in this week)
+  useEffect(() => {
+    if (isLoading || tasks.length === 0) return
+    const now = new Date()
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+    const pastIncomplete = tasks.filter(task => {
+      const taskDate = typeof task.date === 'string' ? task.date : task.date
+      return taskDate < todayStr && !task.completed
+    })
+
+    if (pastIncomplete.length > 0) {
+      setUnfinishedTasks(pastIncomplete)
+      setShowUnfinishedPopup(true)
+    }
+  }, [isLoading, tasks])
 
   // Group tasks by date
   const tasksByDate = useMemo(() => {
@@ -137,6 +157,53 @@ export default function PlannerPage() {
   }
 
   const handleDeleteTask = (taskId: string) => deleteTask(taskId)
+
+  // Get tomorrow's date string
+  const getTomorrowStr = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
+  }
+
+  const handleMoveToTomorrow = async (taskId: string) => {
+    setProcessingUnfinished(true)
+    const tomorrow = getTomorrowStr()
+    // Create new task for tomorrow with same title, delete old one
+    const task = unfinishedTasks.find(t => t.id === taskId)
+    if (task) {
+      createTask({ title: task.title, date: tomorrow }, {
+        onSuccess: () => {
+          deleteTask(taskId)
+          setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
+          setProcessingUnfinished(false)
+        }
+      })
+    }
+  }
+
+  const handleDeleteUnfinished = (taskId: string) => {
+    deleteTask(taskId)
+    setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
+  }
+
+  const handleMoveAllToTomorrow = () => {
+    const tomorrow = getTomorrowStr()
+    setProcessingUnfinished(true)
+    unfinishedTasks.forEach(task => {
+      createTask({ title: task.title, date: tomorrow }, {
+        onSuccess: () => deleteTask(task.id)
+      })
+    })
+    setUnfinishedTasks([])
+    setShowUnfinishedPopup(false)
+    setProcessingUnfinished(false)
+  }
+
+  const handleDeleteAllUnfinished = () => {
+    unfinishedTasks.forEach(task => deleteTask(task.id))
+    setUnfinishedTasks([])
+    setShowUnfinishedPopup(false)
+  }
 
   const handleEditTask = (task: Task) => {
     setEditingTask({ id: task.id, title: task.title })
@@ -363,7 +430,7 @@ export default function PlannerPage() {
                                     {task.title}
                                   </span>
                                 )}
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="flex items-center gap-1">
                                   <button onClick={(e) => { e.stopPropagation(); handleEditTask(task) }} className="text-[#707070] hover:text-[#d4af37]">
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
@@ -396,7 +463,7 @@ export default function PlannerPage() {
                                   {task.title}
                                 </span>
                               )}
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                              <div className="flex items-center gap-1">
                                 <button onClick={(e) => { e.stopPropagation(); handleEditTask(task) }} className="text-[#707070] hover:text-[#d4af37]">
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
@@ -615,6 +682,95 @@ export default function PlannerPage() {
           </div>
         )
       })()}
+
+      {/* Unfinished Tasks Popup */}
+      {showUnfinishedPopup && unfinishedTasks.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]" />
+          <div
+            className="relative w-full sm:max-w-md glass-card sm:rounded-2xl rounded-t-2xl border border-[rgba(231,76,60,0.3)] overflow-hidden"
+            style={{
+              boxShadow: '0 0 30px rgba(231,76,60,0.15), 0 0 60px rgba(231,76,60,0.05)',
+              animation: 'popupSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Header */}
+            <div className="p-5 border-b border-[rgba(231,76,60,0.15)] bg-[rgba(231,76,60,0.05)]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[rgba(231,76,60,0.15)] flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-[#e74c3c]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[#f5f5f5]">
+                    {unfinishedTasks.length} {t.common.tasks} not done
+                  </h3>
+                  <p className="text-xs text-[#707070] mt-0.5">Move to tomorrow or delete?</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Task list */}
+            <div className="p-4 max-h-[300px] overflow-y-auto space-y-2">
+              {unfinishedTasks.map((task, i) => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(212,175,55,0.1)] bg-[rgba(0,0,0,0.2)]"
+                  style={{ animation: `popupItemFade 0.3s ease-out ${i * 0.05}s both` }}
+                >
+                  <div className="w-5 h-5 rounded-full border-2 border-[#3a3a3a] bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
+                    <XIcon className="w-3 h-3 text-[#505050]" />
+                  </div>
+                  <span className="text-sm text-[#a0a0a0] flex-1">{task.title}</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleMoveToTomorrow(task.id)}
+                      disabled={processingUnfinished}
+                      className="p-1.5 rounded-lg bg-[rgba(212,175,55,0.1)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.2)] transition-colors"
+                      title="Move to tomorrow"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUnfinished(task.id)}
+                      className="p-1.5 rounded-lg bg-[rgba(231,76,60,0.1)] text-[#e74c3c] hover:bg-[rgba(231,76,60,0.2)] transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bulk actions */}
+            <div className="p-4 border-t border-[rgba(212,175,55,0.1)] flex gap-3">
+              <Button
+                variant="luxury"
+                className="flex-1 h-11 text-sm rounded-xl"
+                onClick={handleMoveAllToTomorrow}
+                disabled={processingUnfinished}
+              >
+                {processingUnfinished ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <ArrowRight className="w-4 h-4 mr-1.5" />
+                    Move all
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1 h-11 text-sm rounded-xl text-[#e74c3c] hover:bg-[rgba(231,76,60,0.1)]"
+                onClick={handleDeleteAllUnfinished}
+              >
+                <Trash2 className="w-4 h-4 mr-1.5" />
+                Delete all
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Weekly Analytics */}
       <div className="space-y-3 sm:space-y-4">
