@@ -38,7 +38,23 @@
     "feature3": "Custom themes",
     "feature4": "Priority support"
   },
+  "pricing": {
+    "choosePlan": "Choose Your Plan",
+    "subtitle": "Start with a 3-day free trial. Cancel anytime.",
+    "popular": "POPULAR",
+    "startTrial": "Start Free Trial",
+    "buyForever": "Buy Forever",
+    "trialNote": "3-day free trial · Cancel anytime",
+    "oneTime": "one-time",
+    "maybeLater": "Maybe later",
+    "redirecting": "Redirecting...",
+    "successTitle": "Payment Successful!",
+    "successDesc": "Welcome to your new plan. Enjoy all premium features.",
+    "manageSubscription": "Manage Subscription",
+    "manageBilling": "Manage Billing"
+  },
   "messages": {
+    "checkoutError": "Failed to start checkout. Please try again.",
     "welcomeBack": "Welcome back!",
     "accountCreated": "Account created successfully!",
     "signedOut": "Signed out successfully",

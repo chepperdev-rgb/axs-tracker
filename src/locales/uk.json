@@ -26,6 +26,21 @@
     "haveAccount": "Вже є акаунт?",
     "signInLink": "Увiйти"
   },
+  "pricing": {
+    "choosePlan": "Оберiть план",
+    "subtitle": "3 днi безкоштовно. Скасування будь-коли.",
+    "popular": "ПОПУЛЯРНИЙ",
+    "startTrial": "Почати безкоштовно",
+    "buyForever": "Купити назавжди",
+    "trialNote": "3 днi безкоштовно · Скасування будь-коли",
+    "oneTime": "одноразово",
+    "maybeLater": "Пiзнiше",
+    "redirecting": "Перенаправлення...",
+    "successTitle": "Оплата успiшна!",
+    "successDesc": "Ласкаво просимо до нового плану. Насолоджуйтесь усiма функцiями.",
+    "manageSubscription": "Керування пiдпискою",
+    "manageBilling": "Керування оплатою"
+  },
   "premium": {
     "unlockPremium": "Вiдкрити Премiум",
     "startUsing": "Почнiть використовувати AXS Tracker",
@@ -39,6 +54,7 @@
     "feature4": "Прiоритетна пiдтримка"
   },
   "messages": {
+    "checkoutError": "Помилка оформлення. Спробуйте знову.",
     "welcomeBack": "З поверненням!",
     "accountCreated": "Акаунт створено!",
     "signedOut": "Ви вийшли з системи",

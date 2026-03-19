@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { NavBar } from '@/components/layout/NavBar'
 import { PaymentModalTrigger } from '@/components/modals'
@@ -14,8 +15,10 @@ export default function AppLayout({
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {children}
       </main>
-      {/* Triggers payment modal for first-time users */}
-      <PaymentModalTrigger />
+      {/* Triggers pricing modal for new users, handles ?showPricing and ?session_id params */}
+      <Suspense fallback={null}>
+        <PaymentModalTrigger />
+      </Suspense>
     </div>
   )
 }

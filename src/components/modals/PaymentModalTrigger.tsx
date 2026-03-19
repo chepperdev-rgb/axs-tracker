@@ -1,33 +1,81 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { usePaymentModalContext } from "@/providers/payment-modal-provider"
 import { createClient } from "@/lib/supabase/client"
+import { useI18n } from "@/providers/i18n-provider"
+import { toast } from "sonner"
 
 const FIRST_LOGIN_KEY = "axs_first_login_shown"
 
 /**
- * Component that triggers the payment modal for first-time users.
- * Add this component to the dashboard or main app layout.
+ * Component that handles payment modal triggers:
+ * 1. ?showPricing=true  — opens pricing modal (from registration redirect)
+ * 2. ?session_id=...    — shows success toast after Stripe checkout
+ * 3. New user detection — auto-shows for users < 24 hours old
  *
- * It detects if the user is new (created within the last 24 hours)
- * and hasn't dismissed the modal yet.
+ * Renders nothing — purely logic.
  */
 export function PaymentModalTrigger() {
-  const { showForRegistration, hasDismissed } = usePaymentModalContext()
+  const { showForRegistration, hasDismissed, openModal } = usePaymentModalContext()
+  const { t } = useI18n()
   const [hasChecked, setHasChecked] = useState(false)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const handledRef = useRef(false)
 
+  // Handle ?showPricing=true and ?session_id=... query params
   useEffect(() => {
-    // Only run once
-    if (hasChecked) return
+    if (handledRef.current) return
+    handledRef.current = true
 
-    // Don't show if already dismissed
+    const showPricing = searchParams.get("showPricing")
+    const sessionId = searchParams.get("session_id")
+
+    if (sessionId) {
+      // Payment succeeded — show success toast and clean URL
+      toast.success(t.pricing.successTitle, {
+        description: t.pricing.successDesc,
+        duration: 6000,
+      })
+      // Remove query params from URL without navigation
+      const url = new URL(window.location.href)
+      url.searchParams.delete("session_id")
+      url.searchParams.delete("showPricing")
+      router.replace(url.pathname + (url.searchParams.toString() ? `?${url.searchParams}` : ""))
+      return
+    }
+
+    if (showPricing === "true") {
+      // From registration — clean URL and show pricing
+      const url = new URL(window.location.href)
+      url.searchParams.delete("showPricing")
+      router.replace(url.pathname + (url.searchParams.toString() ? `?${url.searchParams}` : ""))
+
+      setTimeout(() => {
+        openModal()
+      }, 600)
+    }
+  }, [searchParams, router, openModal, t.pricing])
+
+  // Auto-show for new users (created < 24 hours ago), no ?showPricing redirect
+  useEffect(() => {
+    if (hasChecked) return
     if (hasDismissed) {
       setHasChecked(true)
       return
     }
 
-    // Check if we've already shown the first login modal
+    const showPricing = searchParams.get("showPricing")
+    const sessionId = searchParams.get("session_id")
+
+    // Skip auto-detection if query params handle it
+    if (showPricing === "true" || sessionId) {
+      setHasChecked(true)
+      return
+    }
+
     const hasShownFirstLogin = sessionStorage.getItem(FIRST_LOGIN_KEY) === "true"
     if (hasShownFirstLogin) {
       setHasChecked(true)
@@ -36,19 +84,19 @@ export function PaymentModalTrigger() {
 
     const checkNewUser = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!user) {
         setHasChecked(true)
         return
       }
 
-      // Check if user was created in the last 24 hours
       const createdAt = new Date(user.created_at)
       const now = new Date()
       const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
 
-      // If user is new (created within 24 hours), show the modal
       if (hoursSinceCreation < 24) {
         sessionStorage.setItem(FIRST_LOGIN_KEY, "true")
         showForRegistration()
@@ -57,11 +105,9 @@ export function PaymentModalTrigger() {
       setHasChecked(true)
     }
 
-    // Small delay to ensure the app is fully loaded
     const timer = setTimeout(checkNewUser, 1500)
     return () => clearTimeout(timer)
-  }, [hasDismissed, hasChecked, showForRegistration])
+  }, [hasDismissed, hasChecked, showForRegistration, searchParams])
 
-  // This component doesn't render anything
   return null
 }

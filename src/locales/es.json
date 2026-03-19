@@ -38,7 +38,23 @@
     "feature3": "Temas personalizados",
     "feature4": "Soporte prioritario"
   },
+  "pricing": {
+    "choosePlan": "Elige tu plan",
+    "subtitle": "3 dias gratis. Cancela cuando quieras.",
+    "popular": "POPULAR",
+    "startTrial": "Prueba gratis",
+    "buyForever": "Comprar para siempre",
+    "trialNote": "3 dias gratis · Cancela cuando quieras",
+    "oneTime": "pago unico",
+    "maybeLater": "Quiza despues",
+    "redirecting": "Redirigiendo...",
+    "successTitle": "Pago exitoso!",
+    "successDesc": "Bienvenido a tu nuevo plan. Disfruta todas las funciones premium.",
+    "manageSubscription": "Gestionar suscripcion",
+    "manageBilling": "Gestionar facturacion"
+  },
   "messages": {
+    "checkoutError": "Error al iniciar el pago. Intenta de nuevo.",
     "welcomeBack": "Bienvenido!",
     "accountCreated": "Cuenta creada!",
     "signedOut": "Sesion cerrada",

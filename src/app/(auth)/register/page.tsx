@@ -67,7 +67,7 @@ export default function RegisterPage() {
   }
 
   const handleAnimationComplete = () => {
-    router.push('/dashboard')
+    router.push('/dashboard?showPricing=true')
     router.refresh()
   }
 

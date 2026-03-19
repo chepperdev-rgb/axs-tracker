@@ -2,13 +2,10 @@
 
 import * as React from "react"
 import { createContext, useContext, useCallback, useState, useEffect } from "react"
-import { PaymentModal } from "@/components/modals/PaymentModal"
-import { toast } from "sonner"
-import { useI18n } from "@/providers/i18n-provider"
+import { PricingModal } from "@/components/modals/PricingModal"
 
 const STORAGE_KEY = "axs_payment_modal_dismissed"
 const SESSION_KEY = "axs_payment_modal_shown_this_session"
-const PREMIUM_KEY = "axs_is_premium"
 
 interface PaymentModalContextValue {
   /** Whether the modal is currently open */
@@ -30,7 +27,6 @@ interface PaymentModalContextValue {
 const PaymentModalContext = createContext<PaymentModalContextValue | null>(null)
 
 export function PaymentModalProvider({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [hasDismissed, setHasDismissed] = useState(false)
   const [hasShownInSession, setHasShownInSession] = useState(false)
@@ -72,11 +68,9 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
 
   const showForRegistration = useCallback(() => {
     if (!isInitialized) return
-
-    // Don't show if already dismissed or shown in this session
     if (hasDismissed || hasShownInSession) return
 
-    // Small delay to let UI settle after registration
+    // Small delay to let UI settle after registration animation
     setTimeout(() => {
       openModal()
     }, 800)
@@ -91,40 +85,16 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      closeModal()
-    } else {
-      openModal()
-    }
-  }, [closeModal, openModal])
-
-  const handleStartPremium = useCallback(async () => {
-    try {
-      const response = await fetch('/api/user/upgrade', {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        // Store premium status locally
-        if (typeof window !== "undefined") {
-          localStorage.setItem(PREMIUM_KEY, "true")
-        }
-        toast.success(t.messages.welcomeToPremium)
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
         closeModal()
-        // Refresh to update UI
-        window.location.reload()
       } else {
-        toast.error(t.messages.failedUpgrade)
+        openModal()
       }
-    } catch {
-      toast.error(t.messages.networkError)
-    }
-  }, [closeModal, t.messages])
-
-  const handleMaybeLater = useCallback(() => {
-    dismissModal()
-  }, [dismissModal])
+    },
+    [closeModal, openModal],
+  )
 
   const value: PaymentModalContextValue = {
     isOpen,
@@ -133,18 +103,13 @@ export function PaymentModalProvider({ children }: { children: React.ReactNode }
     dismissModal,
     showForRegistration,
     hasDismissed,
-    resetFlags
+    resetFlags,
   }
 
   return (
     <PaymentModalContext.Provider value={value}>
       {children}
-      <PaymentModal
-        open={isOpen}
-        onOpenChange={handleOpenChange}
-        onStartPremium={handleStartPremium}
-        onMaybeLater={handleMaybeLater}
-      />
+      <PricingModal open={isOpen} onOpenChange={handleOpenChange} />
     </PaymentModalContext.Provider>
   )
 }
