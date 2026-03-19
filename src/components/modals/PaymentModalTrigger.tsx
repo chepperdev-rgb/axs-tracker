@@ -34,16 +34,29 @@ export function PaymentModalTrigger() {
     const sessionId = searchParams.get("session_id")
 
     if (sessionId) {
-      // Payment succeeded — show success toast and clean URL
-      toast.success(t.pricing.successTitle, {
-        description: t.pricing.successDesc,
-        duration: 6000,
+      // Payment returned — verify session and activate plan
+      fetch('/api/stripe/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
       })
-      // Remove query params from URL without navigation
-      const url = new URL(window.location.href)
-      url.searchParams.delete("session_id")
-      url.searchParams.delete("showPricing")
-      router.replace(url.pathname + (url.searchParams.toString() ? `?${url.searchParams}` : ""))
+        .then(r => r.json())
+        .then(data => {
+          if (data.plan && data.plan !== 'free') {
+            toast.success(t.pricing.successTitle, {
+              description: t.pricing.successDesc,
+              duration: 6000,
+            })
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          // Clean URL and reload to remove paywall
+          const url = new URL(window.location.href)
+          url.searchParams.delete("session_id")
+          url.searchParams.delete("showPricing")
+          window.location.href = url.pathname
+        })
       return
     }
 
