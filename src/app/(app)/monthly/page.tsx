@@ -359,47 +359,51 @@ export default function MonthlyPage() {
             ))}
           </div>
 
-          {/* Weekly Grid */}
+          {/* Weekly Grid — same as original */}
           <Card className="overflow-hidden p-0">
-            {/* Header */}
-            <div className="grid grid-cols-[minmax(120px,1fr)_repeat(7,36px)] gap-0.5 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
-                {t.monthly.habit}
-              </div>
-              {activeWeekData.days.map((day, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-[9px] text-[#707070] uppercase">{t.monthly.weekDaysShort[i]}</div>
-                  <div className="text-xs text-[#f5f5f5] font-medium">
-                    {day.dayOfMonth > 0 ? day.dayOfMonth : '-'}
+            <div className="overflow-x-auto">
+              <div className="min-w-[500px]">
+                {/* Header */}
+                <div className="grid grid-cols-[minmax(160px,max-content)_repeat(7,40px)] gap-1 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
+                    {t.monthly.habit}
                   </div>
+                  {activeWeekData.days.map((day, i) => (
+                    <div key={i} className="text-center">
+                      <div className="text-[10px] text-[#707070] uppercase">{t.monthly.weekDaysShort[i]}</div>
+                      <div className="text-xs text-[#f5f5f5] font-medium">
+                        {day.dayOfMonth > 0 ? day.dayOfMonth : '-'}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Rows */}
-            {habitsInMonth.map((habit) => (
-              <div
-                key={habit.id}
-                className="grid grid-cols-[minmax(120px,1fr)_repeat(7,36px)] gap-0.5 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.08)]"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  {habit.emoji ? (
-                    <span className="text-sm flex-shrink-0">{habit.emoji}</span>
-                  ) : (
-                    <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
-                  )}
-                  <span className="text-xs text-[#f5f5f5] font-medium truncate">
-                    {getHabitName(habit, locale, t)}
-                  </span>
-                </div>
-                {activeWeekData.days.map((day, dayIndex) => {
-                  if (day.dayOfMonth === 0) {
-                    return <div key={dayIndex} className="w-6 h-6 mx-auto" />
-                  }
-                  return renderDayCell(habit.id, day.dayOfMonth, dayIndex)
-                })}
+                {/* Rows */}
+                {habitsInMonth.map((habit) => (
+                  <div
+                    key={habit.id}
+                    className="grid grid-cols-[minmax(160px,max-content)_repeat(7,40px)] gap-1 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      {habit.emoji ? (
+                        <span className="text-sm">{habit.emoji}</span>
+                      ) : (
+                        <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
+                      )}
+                      <span className="text-xs text-[#f5f5f5] font-medium">
+                        {getHabitName(habit, locale, t)}
+                      </span>
+                    </div>
+                    {activeWeekData.days.map((day, dayIndex) => {
+                      if (day.dayOfMonth === 0) {
+                        return <div key={dayIndex} className="flex justify-center"><div className="w-6 h-6" /></div>
+                      }
+                      return renderDayCell(habit.id, day.dayOfMonth, dayIndex)
+                    })}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </Card>
         </div>
       )}
