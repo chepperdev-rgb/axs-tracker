@@ -30,6 +30,7 @@ export default function PlannerPage() {
   const [editingTask, setEditingTask] = useState<{ id: string; title: string } | null>(null)
   const todayCardRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const dayCardRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const [showUnfinishedPopup, setShowUnfinishedPopup] = useState(false)
   const [unfinishedTasks, setUnfinishedTasks] = useState<Task[]>([])
   const [processingUnfinished, setProcessingUnfinished] = useState(false)
@@ -235,6 +236,13 @@ export default function PlannerPage() {
       else next.add(index)
       return next
     })
+    // Auto-scroll tapped day to center
+    const card = dayCardRefs.current.get(index)
+    if (card && scrollContainerRef.current) {
+      const container = scrollContainerRef.current
+      const scrollLeft = card.offsetLeft - container.offsetWidth / 2 + card.offsetWidth / 2
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
+    }
   }
 
   // Open day detail (any day, not just past)
@@ -318,7 +326,10 @@ export default function PlannerPage() {
               return (
                 <div
                   key={day}
-                  ref={isTodayDate ? todayCardRef : undefined}
+                  ref={(el) => {
+                    if (el) dayCardRefs.current.set(index, el)
+                    if (isTodayDate) (todayCardRef as React.MutableRefObject<HTMLDivElement | null>).current = el
+                  }}
                   className="flex-shrink-0"
                   style={{ width: 'clamp(200px, 28vw, 280px)' }}
                 >
