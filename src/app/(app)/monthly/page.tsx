@@ -153,7 +153,26 @@ export default function MonthlyPage() {
 
   const isLoading = habitsLoading || logsLoading
 
-  // Auto-scroll to today column on mount
+  // Auto-detect which week today falls in (for mobile weekly view)
+  const currentWeekIndex = useMemo(() => {
+    const todayDay = today.getDate()
+    const isCurrentMonth = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1
+    if (!isCurrentMonth) return 1
+    for (let i = 0; i < weeks.length; i++) {
+      if (weeks[i].days.some(d => d.dayOfMonth === todayDay)) return i + 1
+    }
+    return 1
+  }, [weeks, selectedYear, selectedMonth, today])
+
+  const [activeWeek, setActiveWeek] = useState(currentWeekIndex)
+
+  useEffect(() => {
+    setActiveWeek(currentWeekIndex)
+  }, [currentWeekIndex])
+
+  const activeWeekData = weeks[activeWeek - 1] || { days: [] }
+
+  // Auto-scroll to today column on desktop mount
   useEffect(() => {
     if (!isLoading && todayColRef.current && daysScrollRef.current) {
       const container = daysScrollRef.current
@@ -162,6 +181,53 @@ export default function MonthlyPage() {
       container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
     }
   }, [isLoading, selectedYear, selectedMonth])
+
+  // Render a day cell (shared between mobile and desktop)
+  const renderDayCell = (habitId: string, dayNum: number, key: number | string) => {
+    const dateStr = formatDate(selectedYear, selectedMonth, dayNum)
+    const completed = isCompleted(habitId, dateStr)
+    const cellDate = new Date(selectedYear, selectedMonth - 1, dayNum)
+    const todayDate2 = new Date()
+    todayDate2.setHours(0, 0, 0, 0)
+    cellDate.setHours(0, 0, 0, 0)
+    const isCellToday = cellDate.getTime() === todayDate2.getTime()
+    const isCellPast = cellDate.getTime() < todayDate2.getTime()
+    const isCellFuture = cellDate.getTime() > todayDate2.getTime()
+
+    return (
+      <div key={key} className="flex justify-center items-center">
+        {isCellPast && completed && (
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/40 bg-[rgba(212,175,55,0.1)] flex items-center justify-center">
+            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
+          </div>
+        )}
+        {isCellPast && !completed && (
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/20 flex items-center justify-center">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{
+              background: 'radial-gradient(circle, #ff4444 0%, #cc0000 70%)',
+              boxShadow: '0 0 4px rgba(255,68,68,0.5)',
+            }} />
+          </div>
+        )}
+        {isCellFuture && (
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/15" />
+        )}
+        {isCellToday && (
+          <button
+            onClick={() => handleToggle(habitId, dateStr)}
+            disabled={isToggling}
+            className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-50 ${
+              completed
+                ? 'border-[#d4af37] bg-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.5)]'
+                : 'bg-transparent border-[#d4af37]/50 hover:border-[#d4af37] hover:bg-[rgba(212,175,55,0.05)]'
+            }`}
+          >
+            {completed && <Check className="w-3 h-3 sm:w-4 sm:h-4 stroke-[3] text-[#0a0a0a]" />}
+          </button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -273,30 +339,90 @@ export default function MonthlyPage() {
         </Card>
       )}
 
-      {/* Full Month Habit Grid — sticky names + scrollable days */}
+      {/* ===== MOBILE: Week tabs + weekly grid (sm:hidden) ===== */}
       {!isLoading && habitsInMonth.length > 0 && (
-        <Card className="overflow-hidden p-0">
+        <div className="sm:hidden space-y-3">
+          {/* Week Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 -mx-4 px-4">
+            {weeks.map((weekData) => (
+              <button
+                key={weekData.week}
+                onClick={() => setActiveWeek(weekData.week)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                  activeWeek === weekData.week
+                    ? 'bg-[rgba(212,175,55,0.15)] border-[#d4af37] text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                    : 'bg-transparent border-[#2a2a2a] text-[#a0a0a0] hover:border-[#3a3a3a] hover:text-[#f5f5f5]'
+                }`}
+              >
+                W{weekData.week}
+              </button>
+            ))}
+          </div>
+
+          {/* Weekly Grid */}
+          <Card className="overflow-hidden p-0">
+            {/* Header */}
+            <div className="grid grid-cols-[minmax(120px,1fr)_repeat(7,36px)] gap-0.5 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
+                {t.monthly.habit}
+              </div>
+              {activeWeekData.days.map((day, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-[9px] text-[#707070] uppercase">{t.monthly.weekDaysShort[i]}</div>
+                  <div className="text-xs text-[#f5f5f5] font-medium">
+                    {day.dayOfMonth > 0 ? day.dayOfMonth : '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Rows */}
+            {habitsInMonth.map((habit) => (
+              <div
+                key={habit.id}
+                className="grid grid-cols-[minmax(120px,1fr)_repeat(7,36px)] gap-0.5 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.08)]"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {habit.emoji ? (
+                    <span className="text-sm flex-shrink-0">{habit.emoji}</span>
+                  ) : (
+                    <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
+                  )}
+                  <span className="text-xs text-[#f5f5f5] font-medium truncate">
+                    {getHabitName(habit, locale, t)}
+                  </span>
+                </div>
+                {activeWeekData.days.map((day, dayIndex) => {
+                  if (day.dayOfMonth === 0) {
+                    return <div key={dayIndex} className="w-6 h-6 mx-auto" />
+                  }
+                  return renderDayCell(habit.id, day.dayOfMonth, dayIndex)
+                })}
+              </div>
+            ))}
+          </Card>
+        </div>
+      )}
+
+      {/* ===== DESKTOP: Full month grid with sticky names (hidden sm:block) ===== */}
+      {!isLoading && habitsInMonth.length > 0 && (
+        <Card className="overflow-hidden p-0 hidden sm:block">
           <div className="flex">
             {/* Sticky habit names column */}
             <div className="flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
-              {/* Header cell */}
-              <div className="h-12 sm:h-14 flex items-center px-3 sm:px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
-                <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#707070]">
+              <div className="h-14 flex items-center px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+                <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#707070]">
                   {t.monthly.habit}
                 </span>
               </div>
-              {/* Habit name rows */}
               {habitsInMonth.map((habit) => (
-                <div
-                  key={habit.id}
-                  className="h-10 sm:h-12 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.08)]"
-                >
+                <div key={habit.id} className="h-12 flex items-center gap-3 px-4 border-b border-[rgba(212,175,55,0.08)]">
                   {habit.emoji ? (
-                    <span className="text-sm sm:text-base flex-shrink-0">{habit.emoji}</span>
+                    <span className="text-base flex-shrink-0">{habit.emoji}</span>
                   ) : (
-                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-[#d4af37] flex-shrink-0" />
+                    <Star className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
                   )}
-                  <span className="text-xs sm:text-sm text-[#f5f5f5] font-medium whitespace-nowrap">
+                  <span className="text-sm text-[#f5f5f5] font-medium whitespace-nowrap">
                     {getHabitName(habit, locale, t)}
                   </span>
                 </div>
@@ -305,7 +431,6 @@ export default function MonthlyPage() {
 
             {/* Scrollable days grid */}
             <div className="overflow-x-auto flex-1 scroll-smooth" ref={daysScrollRef}>
-              {/* Day numbers header */}
               <div className="flex border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]" style={{ width: `${daysInMonth * 40}px` }}>
                 {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((dayNum) => {
                   const dayDate = new Date(selectedYear, selectedMonth - 1, dayNum)
@@ -313,19 +438,12 @@ export default function MonthlyPage() {
                   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
                   const isTodayCol = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1 && dayNum === today.getDate()
                   return (
-                    <div
-                      key={dayNum}
-                      ref={isTodayCol ? todayColRef : undefined}
-                      className={`w-10 flex-shrink-0 h-12 sm:h-14 flex flex-col items-center justify-center ${
-                        isTodayCol ? 'bg-[rgba(212,175,55,0.1)]' : ''
-                      }`}
-                    >
+                    <div key={dayNum} ref={isTodayCol ? todayColRef : undefined}
+                      className={`w-10 flex-shrink-0 h-14 flex flex-col items-center justify-center ${isTodayCol ? 'bg-[rgba(212,175,55,0.1)]' : ''}`}>
                       <span className={`text-[9px] uppercase ${isWeekend ? 'text-[#505050]' : 'text-[#707070]'}`}>
                         {t.monthly.weekDaysShort[dayOfWeek]}
                       </span>
-                      <span className={`text-xs sm:text-sm font-medium ${
-                        isTodayCol ? 'text-[#d4af37] font-bold' : 'text-[#f5f5f5]'
-                      }`}>
+                      <span className={`text-sm font-medium ${isTodayCol ? 'text-[#d4af37] font-bold' : 'text-[#f5f5f5]'}`}>
                         {dayNum}
                       </span>
                     </div>
@@ -333,62 +451,13 @@ export default function MonthlyPage() {
                 })}
               </div>
 
-              {/* Habit rows with checkboxes */}
               {habitsInMonth.map((habit) => (
                 <div key={habit.id} className="flex border-b border-[rgba(212,175,55,0.08)]" style={{ width: `${daysInMonth * 40}px` }}>
                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((dayNum) => {
-                    const dateStr = formatDate(selectedYear, selectedMonth, dayNum)
-                    const completed = isCompleted(habit.id, dateStr)
-                    const cellDate = new Date(selectedYear, selectedMonth - 1, dayNum)
-                    const todayDate2 = new Date()
-                    todayDate2.setHours(0, 0, 0, 0)
-                    cellDate.setHours(0, 0, 0, 0)
-                    const isCellToday = cellDate.getTime() === todayDate2.getTime()
-                    const isCellPast = cellDate.getTime() < todayDate2.getTime()
-                    const isCellFuture = cellDate.getTime() > todayDate2.getTime()
-
+                    const isTodayCol = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1 && dayNum === today.getDate()
                     return (
-                      <div
-                        key={dayNum}
-                        className={`w-10 flex-shrink-0 h-10 sm:h-12 flex items-center justify-center ${
-                          isCellToday ? 'bg-[rgba(212,175,55,0.05)]' : ''
-                        }`}
-                      >
-                        {isCellPast && completed && (
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/40 bg-[rgba(212,175,55,0.1)] flex items-center justify-center">
-                            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
-                          </div>
-                        )}
-                        {isCellPast && !completed && (
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/20 flex items-center justify-center">
-                            <div
-                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full"
-                              style={{
-                                background: 'radial-gradient(circle, #ff4444 0%, #cc0000 70%)',
-                                boxShadow: '0 0 4px rgba(255,68,68,0.5)',
-                              }}
-                            />
-                          </div>
-                        )}
-                        {isCellFuture && (
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 border-[#d4af37]/15" />
-                        )}
-                        {isCellToday && (
-                          <button
-                            onClick={() => handleToggle(habit.id, dateStr)}
-                            disabled={isToggling}
-                            className={`
-                              w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 flex items-center justify-center
-                              transition-all duration-200 active:scale-95 disabled:opacity-50
-                              ${completed
-                                ? 'border-[#d4af37] bg-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.5)]'
-                                : 'bg-transparent border-[#d4af37]/50 hover:border-[#d4af37] hover:bg-[rgba(212,175,55,0.05)]'
-                              }
-                            `}
-                          >
-                            {completed && <Check className="w-3 h-3 sm:w-4 sm:h-4 stroke-[3] text-[#0a0a0a]" />}
-                          </button>
-                        )}
+                      <div key={dayNum} className={`w-10 flex-shrink-0 h-12 flex items-center justify-center ${isTodayCol ? 'bg-[rgba(212,175,55,0.05)]' : ''}`}>
+                        {renderDayCell(habit.id, dayNum, dayNum)}
                       </div>
                     )
                   })}
