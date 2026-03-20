@@ -8,8 +8,16 @@ const protectedRoutes = ['/dashboard', '/monthly', '/habits', '/planner', '/sett
 const authRoutes = ['/login', '/register']
 
 export async function middleware(request: NextRequest) {
-  const { user, supabaseResponse } = await updateSession(request)
   const { pathname } = request.nextUrl
+
+  // FIRST: Allow Stripe payment return through IMMEDIATELY — no auth check needed
+  // session_id means user just completed payment on Stripe, redirect chain must not break
+  const hasSessionId = request.nextUrl.searchParams.get('session_id')
+  if (hasSessionId) {
+    return NextResponse.next()
+  }
+
+  const { user, supabaseResponse } = await updateSession(request)
 
   // Check if current path is a protected route
   const isProtectedRoute = protectedRoutes.some(
@@ -21,12 +29,8 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
-  // Allow Stripe payment return through — session_id means user just paid
-  const hasSessionId = request.nextUrl.searchParams.get('session_id')
-
   // If user is not authenticated and trying to access protected route
-  // BUT skip if returning from Stripe payment (session_id present)
-  if (!user && isProtectedRoute && !hasSessionId) {
+  if (!user && isProtectedRoute) {
     const redirectUrl = new URL('/login', request.url)
     const fullPath = pathname + (request.nextUrl.search || '')
     redirectUrl.searchParams.set('redirectTo', fullPath)
