@@ -156,6 +156,8 @@
     "bestStreak": "Найкраща серiя",
     "miniHeatmap": "МIНI ТЕПЛОВА КАРТА",
     "dayIntensity": "Iнтенсивнiсть дня (виконання)",
+    "weeklyPulse": "ТИЖНЕВИЙ ПУЛЬС",
+    "sevenDayView": "7-денний огляд",
     "cumulativeProgress": "НАКОПИЧЕНИЙ ПРОГРЕС"
   },
   "monthly": {

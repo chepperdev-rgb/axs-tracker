@@ -495,6 +495,59 @@ export default function DashboardPage() {
           </div>
         </Card>
 
+        {/* Weekly Pulse — tall bar chart like the reference design */}
+        <Card className="p-4 sm:p-5">
+          <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-1 sm:mb-2">
+            {t.dashboard.weeklyPulse}
+          </h3>
+          <p className="text-[10px] sm:text-sm text-[#707070] mb-4 sm:mb-6">{t.dashboard.sevenDayView}</p>
+          {isLoading ? (
+            <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Skeleton key={i} className="flex-1 h-full rounded-t-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52 lg:h-64">
+              {[
+                t.planner.weekDaysShort.mon, t.planner.weekDaysShort.tue, t.planner.weekDaysShort.wed,
+                t.planner.weekDaysShort.thu, t.planner.weekDaysShort.fri, t.planner.weekDaysShort.sat,
+                t.planner.weekDaysShort.sun
+              ].map((day, i) => {
+                const pct = stats?.weeklyData?.[i] || 0
+                const barH = pct > 0 ? Math.max(pct, 5) : 0
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                    {pct > 0 && (
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-[#d4af37]">
+                        {pct}%
+                      </span>
+                    )}
+                    <div
+                      className="w-full rounded-t-lg transition-all duration-700 ease-out"
+                      style={{
+                        height: `${barH}%`,
+                        background: pct > 0
+                          ? 'linear-gradient(to top, #8a6a2a, #d4af37, #f0d060)'
+                          : '#2a2a2a',
+                        boxShadow: pct > 50
+                          ? '0 0 12px rgba(212,175,55,0.4), 0 0 24px rgba(212,175,55,0.15)'
+                          : pct > 0
+                          ? '0 0 6px rgba(212,175,55,0.2)'
+                          : 'none',
+                        minHeight: pct === 0 ? '4px' : undefined,
+                      }}
+                    />
+                    <span className="text-[9px] sm:text-xs text-[#707070] font-medium uppercase">
+                      {day}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </Card>
+
         {/* Cumulative Progress Chart */}
         <Card className="p-4 sm:p-5 lg:col-span-2">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4">

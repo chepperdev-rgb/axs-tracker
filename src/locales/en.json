@@ -156,6 +156,8 @@
     "bestStreak": "Best streak",
     "miniHeatmap": "MINI HEATMAP",
     "dayIntensity": "Day intensity (completion)",
+    "weeklyPulse": "WEEKLY PULSE",
+    "sevenDayView": "7-day view",
     "cumulativeProgress": "CUMULATIVE PROGRESS"
   },
   "monthly": {

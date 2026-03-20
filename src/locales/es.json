@@ -156,6 +156,8 @@
     "bestStreak": "Mejor racha",
     "miniHeatmap": "MINI MAPA DE CALOR",
     "dayIntensity": "Intensidad del dia (completado)",
+    "weeklyPulse": "PULSO SEMANAL",
+    "sevenDayView": "Vista de 7 dias",
     "cumulativeProgress": "PROGRESO ACUMULADO"
   },
   "monthly": {
