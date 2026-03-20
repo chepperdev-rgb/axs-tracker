@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/monthly', '/habits', '/planner', '/settings']
+// NOTE: /dashboard excluded — handles auth client-side to support Stripe payment return
+const protectedRoutes = ['/monthly', '/habits', '/planner', '/settings']
 
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/register']
