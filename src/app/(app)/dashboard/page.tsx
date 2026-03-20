@@ -508,42 +508,49 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52 lg:h-64">
-              {[
-                t.planner.weekDaysShort.mon, t.planner.weekDaysShort.tue, t.planner.weekDaysShort.wed,
-                t.planner.weekDaysShort.thu, t.planner.weekDaysShort.fri, t.planner.weekDaysShort.sat,
-                t.planner.weekDaysShort.sun
-              ].map((day, i) => {
-                const pct = stats?.weeklyData?.[i] || 0
-                const barH = pct > 0 ? Math.max(pct, 5) : 0
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                    {pct > 0 && (
-                      <span className="text-[10px] sm:text-xs font-mono font-bold text-[#d4af37]">
-                        {pct}%
-                      </span>
-                    )}
-                    <div
-                      className="w-full rounded-t-lg transition-all duration-700 ease-out"
-                      style={{
-                        height: `${barH}%`,
-                        background: pct > 0
-                          ? 'linear-gradient(to top, #8a6a2a, #d4af37, #f0d060)'
-                          : '#2a2a2a',
-                        boxShadow: pct > 50
-                          ? '0 0 12px rgba(212,175,55,0.4), 0 0 24px rgba(212,175,55,0.15)'
-                          : pct > 0
-                          ? '0 0 6px rgba(212,175,55,0.2)'
-                          : 'none',
-                        minHeight: pct === 0 ? '4px' : undefined,
-                      }}
-                    />
-                    <span className="text-[9px] sm:text-xs text-[#707070] font-medium uppercase">
-                      {day}
-                    </span>
-                  </div>
-                )
-              })}
+            <div>
+              {/* Bars container — fixed height, bars grow from bottom */}
+              <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52 lg:h-64">
+                {(stats?.weeklyData || Array.from({ length: 7 }, () => 0)).map((pct: number, i: number) => {
+                  const barH = pct > 0 ? Math.max(pct, 5) : 0
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                      {pct > 0 && (
+                        <span className="text-[10px] sm:text-xs font-mono font-bold text-[#d4af37] mb-1.5">
+                          {pct}%
+                        </span>
+                      )}
+                      <div
+                        className="w-full rounded-t-lg transition-all duration-700 ease-out"
+                        style={{
+                          height: `${barH}%`,
+                          background: pct > 0
+                            ? 'linear-gradient(to top, #8a6a2a, #d4af37, #f0d060)'
+                            : '#2a2a2a',
+                          boxShadow: pct > 50
+                            ? '0 0 12px rgba(212,175,55,0.4), 0 0 24px rgba(212,175,55,0.15)'
+                            : pct > 0
+                            ? '0 0 6px rgba(212,175,55,0.2)'
+                            : 'none',
+                          minHeight: '4px',
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Day labels — separate row below bars */}
+              <div className="flex gap-2 sm:gap-3 mt-2">
+                {[
+                  t.planner.weekDaysShort.mon, t.planner.weekDaysShort.tue, t.planner.weekDaysShort.wed,
+                  t.planner.weekDaysShort.thu, t.planner.weekDaysShort.fri, t.planner.weekDaysShort.sat,
+                  t.planner.weekDaysShort.sun
+                ].map((day, i) => (
+                  <span key={i} className="flex-1 text-center text-[9px] sm:text-xs text-[#707070] font-medium uppercase">
+                    {day}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </Card>
