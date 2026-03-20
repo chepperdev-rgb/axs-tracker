@@ -21,10 +21,13 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
+  // Allow Stripe payment return through — session_id means user just paid
+  const hasSessionId = request.nextUrl.searchParams.get('session_id')
+
   // If user is not authenticated and trying to access protected route
-  if (!user && isProtectedRoute) {
+  // BUT skip if returning from Stripe payment (session_id present)
+  if (!user && isProtectedRoute && !hasSessionId) {
     const redirectUrl = new URL('/login', request.url)
-    // Preserve full path + query params (e.g. session_id from Stripe)
     const fullPath = pathname + (request.nextUrl.search || '')
     redirectUrl.searchParams.set('redirectTo', fullPath)
     return NextResponse.redirect(redirectUrl)

@@ -72,6 +72,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     console.error('[stripe/success] Error:', error)
   }
 
-  // Always redirect to dashboard (plan is updated in DB)
-  return NextResponse.redirect(new URL('/dashboard', req.url))
+  // Redirect to dashboard with session_id so PaymentModalTrigger can verify + show toast
+  // session_id in URL also tells PaywallGuard to skip, and middleware to not block
+  const dashUrl = new URL('/dashboard', req.url)
+  dashUrl.searchParams.set('session_id', sessionId)
+  return NextResponse.redirect(dashUrl)
 }
