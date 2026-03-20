@@ -476,25 +476,9 @@ export default function PlannerPage() {
                         })
                       )}
 
-                      {addingTaskForDay === index && (
-                        <div className="flex items-center gap-2 p-2">
-                          <Input
-                            autoFocus
-                            value={newTaskTitle}
-                            onChange={(e) => setNewTaskTitle(e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            onBlur={() => handleBlur(index)}
-                            placeholder={t.common.taskPlaceholder}
-                            disabled={isCreating}
-                            className="h-8 text-xs sm:text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-3"
-                          />
-                          {isCreating && <Loader2 className="w-4 h-4 animate-spin text-[#d4af37]" />}
-                        </div>
-                      )}
-
-                      {addingTaskForDay !== index && !isPastDate && (
+                      {!isPastDate && (
                         <button
-                          onClick={() => handleAddTaskClick(index)}
+                          onClick={() => openDayDetail(date, day)}
                           className="flex items-center gap-2 text-[#707070] hover:text-[#d4af37] text-xs sm:text-sm transition-colors w-full p-2 rounded-lg hover:bg-[rgba(212,175,55,0.05)]"
                         >
                           <Plus className="w-4 h-4" />
@@ -610,8 +594,8 @@ export default function PlannerPage() {
               </div>
 
               {/* Task list with staggered animation */}
-              <div className="px-5 py-3 max-h-[250px] overflow-y-auto space-y-1">
-                {popupTasks.length === 0 ? (
+              <div className="px-5 py-3 max-h-[300px] overflow-y-auto space-y-1">
+                {popupTasks.length === 0 && !isFutureDay && !isTodayDay ? (
                   <p className="text-sm text-[#505050] text-center py-6">{t.planner.noTasks}</p>
                 ) : (
                   popupTasks.map((task, i) => (
@@ -622,12 +606,28 @@ export default function PlannerPage() {
                         animation: `popupItemFade 0.3s ease-out ${i * 0.05}s both`,
                       }}
                     >
-                      {task.completed ? (
+                      {isTodayDay ? (
+                        <button
+                          onClick={() => handleToggleComplete(task)}
+                          className="flex-shrink-0"
+                        >
+                          <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                            task.completed
+                              ? 'bg-[rgba(212,175,55,0.15)]'
+                              : 'bg-[#1c1c1c] hover:bg-[rgba(212,175,55,0.08)]'
+                          }`}
+                            style={task.completed ? { boxShadow: '0 0 8px rgba(212,175,55,0.2)' } : undefined}
+                          >
+                            {task.completed ? (
+                              <Check className="w-3.5 h-3.5 text-[#d4af37]" />
+                            ) : (
+                              <div className="w-2 h-2 rounded-full bg-[#2a2a2a]" />
+                            )}
+                          </div>
+                        </button>
+                      ) : task.completed ? (
                         <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
-                          style={{
-                            background: 'rgba(212,175,55,0.15)',
-                            boxShadow: '0 0 8px rgba(212,175,55,0.2)',
-                          }}
+                          style={{ background: 'rgba(212,175,55,0.15)', boxShadow: '0 0 8px rgba(212,175,55,0.2)' }}
                         >
                           <Check className="w-3.5 h-3.5 text-[#d4af37]" />
                         </div>
@@ -650,18 +650,66 @@ export default function PlannerPage() {
                       }`}>
                         {task.title}
                       </span>
+                      {(isTodayDay || isFutureDay) && (
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="text-[#505050] hover:text-red-400 transition-colors p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))
                 )}
+
+                {/* Add task form inside popup */}
+                {(isTodayDay || isFutureDay) && (
+                  <div className="flex items-center gap-2 pt-2 mt-1 border-t border-[rgba(212,175,55,0.08)]">
+                    <Input
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newTaskTitle.trim()) {
+                          const dayIndex = weekDays.indexOf(dayPopup.dayName)
+                          if (dayIndex >= 0) handleCreateTask(dayIndex)
+                        }
+                      }}
+                      placeholder={t.common.taskPlaceholder}
+                      disabled={isCreating}
+                      className="h-9 text-sm bg-transparent border-[rgba(212,175,55,0.2)] focus:border-[#d4af37] px-3 flex-1"
+                    />
+                    <button
+                      onClick={() => {
+                        if (newTaskTitle.trim()) {
+                          const dayIndex = weekDays.indexOf(dayPopup.dayName)
+                          if (dayIndex >= 0) handleCreateTask(dayIndex)
+                        }
+                      }}
+                      disabled={!newTaskTitle.trim() || isCreating}
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-[rgba(212,175,55,0.15)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.25)] disabled:opacity-30 transition-all"
+                    >
+                      {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    </button>
+                  </div>
+                )}
+
+                {popupTasks.length === 0 && (isTodayDay || isFutureDay) && (
+                  <p className="text-xs text-[#505050] text-center pt-2">{t.planner.noTasks}</p>
+                )}
               </div>
 
-              {/* Motivation */}
-              <div
-                className="px-5 py-4 border-t border-[rgba(212,175,55,0.1)] flex items-center gap-3"
-                style={{ animation: 'popupItemFade 0.4s ease-out 0.3s both' }}
-              >
+              {/* Motivation + Done button */}
+              <div className="px-5 py-4 border-t border-[rgba(212,175,55,0.1)] flex items-center gap-3">
                 <MotivIcon className="w-5 h-5 flex-shrink-0" style={{ color: motivColor }} />
-                <p className="text-sm italic" style={{ color: motivColor }}>{motivation}</p>
+                <p className="text-sm italic flex-1" style={{ color: motivColor }}>{motivation}</p>
+                <Button
+                  variant="luxury"
+                  size="sm"
+                  className="text-xs px-4"
+                  onClick={() => setDayPopup(null)}
+                >
+                  {t.common.done || 'Done'}
+                </Button>
               </div>
             </div>
 
