@@ -496,21 +496,21 @@ export default function DashboardPage() {
         </Card>
 
         {/* Weekly Pulse — tall bar chart like the reference design */}
-        <Card className="p-4 sm:p-5">
+        <Card className="p-4 sm:p-5 flex flex-col">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-1 sm:mb-2">
             {t.dashboard.weeklyPulse}
           </h3>
           <p className="text-[10px] sm:text-sm text-[#707070] mb-4 sm:mb-6">{t.dashboard.sevenDayView}</p>
           {isLoading ? (
-            <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52">
+            <div className="flex items-end gap-2 sm:gap-3 flex-1 min-h-[10rem]">
               {Array.from({ length: 7 }).map((_, i) => (
                 <Skeleton key={i} className="flex-1 h-full rounded-t-lg" />
               ))}
             </div>
           ) : (
-            <div>
-              {/* Bars container — fixed height, bars grow from bottom */}
-              <div className="flex items-end gap-2 sm:gap-3 h-40 sm:h-52 lg:h-64">
+            <div className="flex flex-col flex-1">
+              {/* Bars container — fills remaining space, bars grow from bottom */}
+              <div className="flex items-end gap-2 sm:gap-3 flex-1 min-h-[10rem]">
                 {(stats?.weeklyData || Array.from({ length: 7 }, () => 0)).map((pct: number, i: number) => {
                   const barH = pct > 0 ? Math.max(pct, 5) : 0
                   return (
