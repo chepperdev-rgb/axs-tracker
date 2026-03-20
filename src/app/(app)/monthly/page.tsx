@@ -66,6 +66,8 @@ export default function MonthlyPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const daysScrollRef = useRef<HTMLDivElement>(null)
   const todayColRef = useRef<HTMLDivElement>(null)
+  const mobileScrollRef = useRef<HTMLDivElement>(null)
+  const mobileTodayRef = useRef<HTMLDivElement>(null)
 
   // Month string for API
   const monthString = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
@@ -172,15 +174,23 @@ export default function MonthlyPage() {
 
   const activeWeekData = weeks[activeWeek - 1] || { days: [] }
 
-  // Auto-scroll to today column on desktop mount
+  // Auto-scroll to today column on mount (desktop + mobile)
   useEffect(() => {
-    if (!isLoading && todayColRef.current && daysScrollRef.current) {
-      const container = daysScrollRef.current
-      const col = todayColRef.current
-      const scrollLeft = col.offsetLeft - container.offsetWidth / 2 + col.offsetWidth / 2
-      container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
+    if (!isLoading) {
+      // Desktop
+      if (todayColRef.current && daysScrollRef.current) {
+        const container = daysScrollRef.current
+        const col = todayColRef.current
+        container.scrollTo({ left: col.offsetLeft - container.offsetWidth / 2 + col.offsetWidth / 2, behavior: 'smooth' })
+      }
+      // Mobile
+      if (mobileTodayRef.current && mobileScrollRef.current) {
+        const container = mobileScrollRef.current
+        const col = mobileTodayRef.current
+        container.scrollTo({ left: col.offsetLeft - container.offsetWidth / 2 + col.offsetWidth / 2, behavior: 'smooth' })
+      }
     }
-  }, [isLoading, selectedYear, selectedMonth])
+  }, [isLoading, selectedYear, selectedMonth, activeWeek])
 
   // Render a day cell (shared between mobile and desktop)
   const renderDayCell = (habitId: string, dayNum: number, key: number | string) => {
@@ -359,46 +369,60 @@ export default function MonthlyPage() {
             ))}
           </div>
 
-          {/* Weekly Grid — same as original */}
+          {/* Weekly Grid — sticky names + scrollable balls */}
           <Card className="overflow-hidden p-0">
-            <div className="overflow-x-auto">
-              <div className="min-w-[500px]">
-                {/* Header */}
-                <div className="grid grid-cols-[1fr_repeat(7,40px)] gap-1 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
+            <div className="flex">
+              {/* Sticky habit names */}
+              <div className="flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
+                <div className="h-11 flex items-center px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
                     {t.monthly.habit}
+                  </span>
+                </div>
+                {habitsInMonth.map((habit) => (
+                  <div key={habit.id} className="h-10 flex items-center gap-2 px-3 border-b border-[rgba(212,175,55,0.08)]">
+                    {habit.emoji ? (
+                      <span className="text-sm flex-shrink-0">{habit.emoji}</span>
+                    ) : (
+                      <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
+                    )}
+                    <span className="text-xs text-[#f5f5f5] font-medium">
+                      {getHabitName(habit, locale, t)}
+                    </span>
                   </div>
-                  {activeWeekData.days.map((day, i) => (
-                    <div key={i} className="text-center">
-                      <div className="text-[10px] text-[#707070] uppercase">{t.monthly.weekDaysShort[i]}</div>
-                      <div className="text-xs text-[#f5f5f5] font-medium">
-                        {day.dayOfMonth > 0 ? day.dayOfMonth : '-'}
+                ))}
+              </div>
+
+              {/* Scrollable balls */}
+              <div className="overflow-x-auto flex-1 scroll-smooth" ref={mobileScrollRef}>
+                {/* Day headers */}
+                <div className="flex border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]" style={{ width: `${activeWeekData.days.filter(d => d.dayOfMonth > 0).length * 40}px`, minWidth: '100%' }}>
+                  {activeWeekData.days.map((day, i) => {
+                    if (day.dayOfMonth === 0) return null
+                    const isTodayCell = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1 && day.dayOfMonth === today.getDate()
+                    return (
+                      <div key={i} ref={isTodayCell ? mobileTodayRef : undefined}
+                        className={`w-10 flex-shrink-0 h-11 flex flex-col items-center justify-center ${isTodayCell ? 'bg-[rgba(212,175,55,0.1)]' : ''}`}>
+                        <div className="text-[9px] text-[#707070] uppercase">{t.monthly.weekDaysShort[i]}</div>
+                        <div className={`text-xs font-medium ${isTodayCell ? 'text-[#d4af37] font-bold' : 'text-[#f5f5f5]'}`}>
+                          {day.dayOfMonth}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
-                {/* Rows */}
+                {/* Habit rows */}
                 {habitsInMonth.map((habit) => (
-                  <div
-                    key={habit.id}
-                    className="grid grid-cols-[1fr_repeat(7,40px)] gap-1 items-center py-2 px-3 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      {habit.emoji ? (
-                        <span className="text-sm">{habit.emoji}</span>
-                      ) : (
-                        <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
-                      )}
-                      <span className="text-xs text-[#f5f5f5] font-medium">
-                        {getHabitName(habit, locale, t)}
-                      </span>
-                    </div>
+                  <div key={habit.id} className="flex border-b border-[rgba(212,175,55,0.08)]" style={{ width: `${activeWeekData.days.filter(d => d.dayOfMonth > 0).length * 40}px`, minWidth: '100%' }}>
                     {activeWeekData.days.map((day, dayIndex) => {
-                      if (day.dayOfMonth === 0) {
-                        return <div key={dayIndex} className="flex justify-center"><div className="w-6 h-6" /></div>
-                      }
-                      return renderDayCell(habit.id, day.dayOfMonth, dayIndex)
+                      if (day.dayOfMonth === 0) return null
+                      const isTodayCell = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1 && day.dayOfMonth === today.getDate()
+                      return (
+                        <div key={dayIndex} className={`w-10 flex-shrink-0 h-10 flex items-center justify-center ${isTodayCell ? 'bg-[rgba(212,175,55,0.05)]' : ''}`}>
+                          {renderDayCell(habit.id, day.dayOfMonth, dayIndex)}
+                        </div>
+                      )
                     })}
                   </div>
                 ))}
