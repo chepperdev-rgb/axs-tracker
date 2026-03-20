@@ -311,7 +311,7 @@ export default function MonthlyPage() {
           <div className="overflow-x-auto">
             <div className="min-w-[500px]">
               {/* Grid Header */}
-              <div className="grid grid-cols-[minmax(160px,auto)_repeat(7,40px)] sm:grid-cols-[minmax(200px,auto)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+              <div className="grid grid-cols-[minmax(160px,max-content)_repeat(7,40px)] sm:grid-cols-[minmax(200px,max-content)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
                 <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#707070]">
                   {t.monthly.habit}
                 </div>
@@ -332,7 +332,7 @@ export default function MonthlyPage() {
               {habitsInMonth.map((habit) => (
                 <div
                   key={habit.id}
-                  className="grid grid-cols-[minmax(160px,auto)_repeat(7,40px)] sm:grid-cols-[minmax(200px,auto)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
+                  className="grid grid-cols-[minmax(160px,max-content)_repeat(7,40px)] sm:grid-cols-[minmax(200px,max-content)_repeat(7,48px)] gap-1 sm:gap-2 items-center py-2 sm:py-3 px-3 sm:px-4 border-b border-[rgba(212,175,55,0.08)] hover:bg-[rgba(212,175,55,0.03)] transition-colors"
                 >
                   {/* Habit Name */}
                   <div className="flex items-center gap-2 sm:gap-3">
