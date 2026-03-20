@@ -11,9 +11,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // FIRST: Allow Stripe payment return through IMMEDIATELY — no auth check needed
-  // session_id means user just completed payment on Stripe, redirect chain must not break
+  // Check both URL param (initial redirect) AND cookie (RSC follow-up requests)
   const hasSessionId = request.nextUrl.searchParams.get('session_id')
-  if (hasSessionId) {
+  const hasPaymentCookie = request.cookies.get('stripe_payment_success')?.value === '1'
+  if (hasSessionId || hasPaymentCookie) {
     return NextResponse.next()
   }
 

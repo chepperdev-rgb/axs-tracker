@@ -72,9 +72,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     console.error('[stripe/success] Error:', error)
   }
 
-  // Redirect to dashboard with session_id so PaymentModalTrigger can verify + show toast
-  // session_id in URL also tells PaywallGuard to skip, and middleware to not block
-  const dashUrl = new URL('/dashboard', req.url)
-  dashUrl.searchParams.set('session_id', sessionId)
-  return NextResponse.redirect(dashUrl)
+  // Set a short-lived cookie so middleware knows this is a payment return
+  // Cookie works with RSC (unlike URL params which get stripped on client nav)
+  const dashUrl = new URL('/dashboard?session_id=' + sessionId, req.url)
+  const response = NextResponse.redirect(dashUrl)
+  response.cookies.set('stripe_payment_success', '1', {
+    maxAge: 120, // 2 minutes — enough to load dashboard
+    path: '/',
+    httpOnly: false,
+    secure: true,
+    sameSite: 'lax',
+  })
+  return response
 }
