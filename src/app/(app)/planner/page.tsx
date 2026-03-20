@@ -26,6 +26,7 @@ export default function PlannerPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const escapePressedRef = useRef(false)
   const [dayPopup, setDayPopup] = useState<{ date: string; dayName: string } | null>(null)
+  const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set())
   const [editingTask, setEditingTask] = useState<{ id: string; title: string } | null>(null)
   const todayCardRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -227,6 +228,15 @@ export default function PlannerPage() {
   const weeklyOffset = circumference - (weekStats.percentage / 100) * circumference
   const todayOffset = circumference - (todayStats.percentage / 100) * circumference
 
+  const toggleDayCollapse = (index: number) => {
+    setCollapsedDays(prev => {
+      const next = new Set(prev)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }
+
   // Open day detail (any day, not just past)
   const openDayDetail = (date: string, dayName: string) => {
     setDayPopup({ date, dayName })
@@ -326,9 +336,9 @@ export default function PlannerPage() {
                       boxShadow: '0 0 25px rgba(212,175,55,0.35), 0 0 50px rgba(212,175,55,0.15), inset 0 0 15px rgba(212,175,55,0.05)',
                     } : undefined}
                   >
-                    {/* Day Header — clickable to open detail */}
+                    {/* Day Header — tap to collapse/expand */}
                     <button
-                      onClick={() => openDayDetail(date, day)}
+                      onClick={() => toggleDayCollapse(index)}
                       className={`
                         w-full p-3 sm:p-4 border-b text-left transition-colors
                         ${isTodayDate
@@ -338,14 +348,21 @@ export default function PlannerPage() {
                       `}
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className={`
-                          text-sm sm:text-base font-semibold uppercase
-                          ${isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
-                        `}>
-                          <span className="sm:hidden">{weekDaysShort[index]}</span>
-                          <span className="hidden sm:inline">{day}</span>
-                          {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">{t.planner.today}</span>}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <ChevronRight
+                            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                              !collapsedDays.has(index) ? 'rotate-90' : ''
+                            } ${isTodayDate ? 'text-[#d4af37]' : 'text-[#505050]'}`}
+                          />
+                          <span className={`
+                            text-sm sm:text-base font-semibold uppercase
+                            ${isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
+                          `}>
+                            <span className="sm:hidden">{weekDaysShort[index]}</span>
+                            <span className="hidden sm:inline">{day}</span>
+                            {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">{t.planner.today}</span>}
+                          </span>
+                        </div>
                         <span className="text-xs sm:text-sm text-[#707070] font-mono">
                           {completedCount}/{totalCount}
                         </span>
@@ -360,8 +377,13 @@ export default function PlannerPage() {
                       </div>
                     </button>
 
-                    {/* Tasks */}
-                    <div className="p-3 sm:p-4 space-y-2 min-h-[200px] sm:min-h-[240px]">
+                    {/* Tasks — collapsible, height fits content */}
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        collapsedDays.has(index) ? 'max-h-0' : 'max-h-[2000px]'
+                      }`}
+                    >
+                    <div className="p-3 sm:p-4 space-y-2">
                       {dayTasks.length === 0 && addingTaskForDay !== index ? (
                         <p className="text-xs sm:text-sm text-[#707070] text-center py-6 sm:py-8">
                           {t.common.noTasks}
@@ -503,6 +525,7 @@ export default function PlannerPage() {
                         </button>
                       )}
                     </div>
+                    </div>{/* end collapsible wrapper */}
                   </Card>
                 </div>
               )
