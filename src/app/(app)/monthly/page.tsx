@@ -373,7 +373,7 @@ export default function MonthlyPage() {
           <Card className="overflow-hidden p-0">
             <div className="flex">
               {/* Sticky habit names — narrow, text wraps */}
-              <div className="w-[100px] flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
+              <div className="w-[140px] flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
                 <div className="h-11 flex items-center px-2 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
                     {t.monthly.habit}
