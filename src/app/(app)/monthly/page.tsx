@@ -372,21 +372,21 @@ export default function MonthlyPage() {
           {/* Weekly Grid — sticky names + scrollable balls */}
           <Card className="overflow-hidden p-0">
             <div className="flex">
-              {/* Sticky habit names */}
-              <div className="flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
-                <div className="h-11 flex items-center px-3 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
+              {/* Sticky habit names — narrow, text wraps */}
+              <div className="w-[100px] flex-shrink-0 z-10 bg-[#141414] border-r border-[rgba(212,175,55,0.1)]">
+                <div className="h-11 flex items-center px-2 border-b border-[rgba(212,175,55,0.15)] bg-[rgba(0,0,0,0.3)]">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#707070]">
                     {t.monthly.habit}
                   </span>
                 </div>
                 {habitsInMonth.map((habit) => (
-                  <div key={habit.id} className="h-10 flex items-center gap-2 px-3 border-b border-[rgba(212,175,55,0.08)]">
+                  <div key={habit.id} className="min-h-[40px] flex items-center gap-1.5 px-2 py-1 border-b border-[rgba(212,175,55,0.08)]">
                     {habit.emoji ? (
                       <span className="text-sm flex-shrink-0">{habit.emoji}</span>
                     ) : (
                       <Star className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
                     )}
-                    <span className="text-xs text-[#f5f5f5] font-medium">
+                    <span className="text-[10px] leading-tight text-[#f5f5f5] font-medium">
                       {getHabitName(habit, locale, t)}
                     </span>
                   </div>
@@ -419,7 +419,7 @@ export default function MonthlyPage() {
                       if (day.dayOfMonth === 0) return null
                       const isTodayCell = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1 && day.dayOfMonth === today.getDate()
                       return (
-                        <div key={dayIndex} className={`w-10 flex-shrink-0 h-10 flex items-center justify-center ${isTodayCell ? 'bg-[rgba(212,175,55,0.05)]' : ''}`}>
+                        <div key={dayIndex} className={`w-10 flex-shrink-0 min-h-[40px] flex items-center justify-center ${isTodayCell ? 'bg-[rgba(212,175,55,0.05)]' : ''}`}>
                           {renderDayCell(habit.id, day.dayOfMonth, dayIndex)}
                         </div>
                       )
