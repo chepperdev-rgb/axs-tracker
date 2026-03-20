@@ -806,66 +806,73 @@ export default function PlannerPage() {
         </div>
       )}
 
-      {/* Weekly Analytics */}
+      {/* Weekly Analytics — 7 daily circles */}
       <div className="space-y-3 sm:space-y-4">
         <h2 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
           {t.planner.weeklyAnalytics}
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:gap-6">
-          <Card className="p-4 sm:p-6 flex flex-col items-center">
-            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4 sm:mb-6 text-center">
-              {t.planner.weekly}
-            </h3>
-            <div className="flex items-center justify-center w-full">
-              <div className="relative w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="6" />
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#weeklyGradient)" strokeWidth="6"
-                    strokeDasharray={circumference} strokeDashoffset={weeklyOffset} strokeLinecap="round"
-                    className="gold-glow transition-all duration-500" />
-                  <defs>
-                    <linearGradient id="weeklyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d4af37" /><stop offset="100%" stopColor="#f0d060" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xl sm:text-3xl lg:text-4xl font-bold text-[#d4af37] font-mono">{weekStats.percentage}%</span>
-                </div>
-              </div>
-            </div>
-            <p className="text-[10px] sm:text-sm text-[#707070] text-center mt-3 sm:mt-4">
-              {weekStats.completed}/{weekStats.total} {t.common.tasks}
-            </p>
-          </Card>
 
-          <Card className="p-4 sm:p-6 flex flex-col items-center">
-            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4 sm:mb-6 text-center">
-              {t.planner.today}
-            </h3>
-            <div className="flex items-center justify-center w-full">
-              <div className="relative w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="6" />
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#dailyGradient)" strokeWidth="6"
-                    strokeDasharray={circumference} strokeDashoffset={todayOffset} strokeLinecap="round"
-                    className="gold-glow transition-all duration-500" />
-                  <defs>
-                    <linearGradient id="dailyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d4af37" /><stop offset="100%" stopColor="#f0d060" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xl sm:text-3xl lg:text-4xl font-bold text-[#d4af37] font-mono">{todayStats.percentage}%</span>
+        {/* Week total bar */}
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
+              {t.planner.weekly}: <span className="text-[#d4af37] gold-glow">{weekStats.percentage}%</span>
+            </span>
+            <span className="text-[10px] sm:text-sm text-[#707070]">{weekStats.completed}/{weekStats.total} {t.common.tasks}</span>
+          </div>
+        </Card>
+
+        {/* 7 daily circles */}
+        <Card className="p-4 sm:p-6 lg:p-8">
+          <div className="grid grid-cols-7 gap-2 sm:gap-4 lg:gap-6">
+            {weekDays.map((day, index) => {
+              const date = getDateForDay(weekStart, index)
+              const dayTasks = tasksByDate[date] || []
+              const done = dayTasks.filter((t) => t.completed).length
+              const total = dayTasks.length
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0
+              const isTodayDate = isToday(date)
+              const isPastDate = isPast(date)
+              const dayCircumference = 2 * Math.PI * 40
+              const dayOffset = dayCircumference - (pct / 100) * dayCircumference
+              const strokeColor = isTodayDate ? '#d4af37' : isPastDate ? (pct >= 75 ? '#a0a0a0' : '#3a3a3a') : (pct >= 75 ? '#d4af37' : pct > 0 ? '#d4af37' : '#2a2a2a')
+
+              return (
+                <div key={day} className="flex flex-col items-center gap-1.5 sm:gap-3">
+                  <span className={`text-[9px] sm:text-xs font-semibold uppercase tracking-wider ${
+                    isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#a0a0a0]'
+                  }`}>
+                    <span className="sm:hidden">{weekDaysShort[index]}</span>
+                    <span className="hidden sm:inline">{day}</span>
+                  </span>
+                  <div className={`relative w-10 h-10 sm:w-24 sm:h-24 lg:w-32 lg:h-32 ${isTodayDate ? 'gold-pulse rounded-full' : ''}`}>
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="6" />
+                      <circle cx="50" cy="50" r="40" fill="none"
+                        stroke={strokeColor}
+                        strokeWidth="6" strokeLinecap="round"
+                        strokeDasharray={dayCircumference}
+                        strokeDashoffset={dayOffset}
+                        className="transition-all duration-500"
+                        style={{
+                          filter: isTodayDate && pct > 0 ? 'drop-shadow(0 0 6px rgba(212,175,55,0.5))' : 'none',
+                        }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`text-[10px] sm:text-lg lg:text-2xl font-bold font-mono ${
+                        isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'
+                      }`}>{pct}%</span>
+                    </div>
+                  </div>
+                  <span className={`text-[8px] sm:text-xs font-mono ${
+                    isTodayDate ? 'text-[#d4af37]' : 'text-[#707070]'
+                  }`}>{done}/{total}</span>
                 </div>
-              </div>
-            </div>
-            <p className="text-[10px] sm:text-sm text-[#707070] text-center mt-3 sm:mt-4">
-              {todayStats.completed}/{todayStats.total} {t.common.tasks}
-            </p>
-          </Card>
-        </div>
+              )
+            })}
+          </div>
+        </Card>
       </div>
     </div>
   )
