@@ -800,16 +800,16 @@ export default function PlannerPage() {
         <h2 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0]">
           {t.planner.weeklyAnalytics}
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <Card className="p-3 sm:p-5">
-            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4 text-center">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6">
+          <Card className="p-4 sm:p-6 flex flex-col items-center">
+            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4 sm:mb-6 text-center">
               {t.planner.weekly}
             </h3>
-            <div className="flex items-center justify-center">
-              <div className="relative w-20 h-20 sm:w-32 sm:h-32">
+            <div className="flex items-center justify-center w-full">
+              <div className="relative w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#weeklyGradient)" strokeWidth="8"
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="6" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#weeklyGradient)" strokeWidth="6"
                     strokeDasharray={circumference} strokeDashoffset={weeklyOffset} strokeLinecap="round"
                     className="gold-glow transition-all duration-500" />
                   <defs>
@@ -819,24 +819,24 @@ export default function PlannerPage() {
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">{weekStats.percentage}%</span>
+                  <span className="text-xl sm:text-3xl lg:text-4xl font-bold text-[#d4af37] font-mono">{weekStats.percentage}%</span>
                 </div>
               </div>
             </div>
-            <p className="text-[10px] sm:text-xs text-[#707070] text-center mt-2 sm:mt-3">
+            <p className="text-[10px] sm:text-sm text-[#707070] text-center mt-3 sm:mt-4">
               {weekStats.completed}/{weekStats.total} {t.common.tasks}
             </p>
           </Card>
 
-          <Card className="p-3 sm:p-5">
-            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-3 sm:mb-4 text-center">
+          <Card className="p-4 sm:p-6 flex flex-col items-center">
+            <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4 sm:mb-6 text-center">
               {t.planner.today}
             </h3>
-            <div className="flex items-center justify-center">
-              <div className="relative w-20 h-20 sm:w-32 sm:h-32">
+            <div className="flex items-center justify-center w-full">
+              <div className="relative w-24 h-24 sm:w-44 sm:h-44 lg:w-52 lg:h-52">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#dailyGradient)" strokeWidth="8"
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2a2a2a" strokeWidth="6" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#dailyGradient)" strokeWidth="6"
                     strokeDasharray={circumference} strokeDashoffset={todayOffset} strokeLinecap="round"
                     className="gold-glow transition-all duration-500" />
                   <defs>
@@ -846,11 +846,11 @@ export default function PlannerPage() {
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg sm:text-2xl font-bold text-[#d4af37] font-mono">{todayStats.percentage}%</span>
+                  <span className="text-xl sm:text-3xl lg:text-4xl font-bold text-[#d4af37] font-mono">{todayStats.percentage}%</span>
                 </div>
               </div>
             </div>
-            <p className="text-[10px] sm:text-xs text-[#707070] text-center mt-2 sm:mt-3">
+            <p className="text-[10px] sm:text-sm text-[#707070] text-center mt-3 sm:mt-4">
               {todayStats.completed}/{todayStats.total} {t.common.tasks}
             </p>
           </Card>
