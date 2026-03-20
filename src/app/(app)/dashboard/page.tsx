@@ -349,62 +349,31 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* Daily Completion Circular Gauges - 2-3-2 Layout Full Width */}
-        <Card className="p-4 sm:p-5 lg:col-span-2">
+        {/* Daily Completion Circular Gauges - 7 in a row */}
+        <Card className="p-4 sm:p-6 lg:p-8 lg:col-span-2">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-[#a0a0a0] mb-4 sm:mb-6">
             {t.dashboard.completionPerDay}
           </h3>
           {isLoading ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between">
-                <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
-                <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
-              </div>
-              <div className="flex justify-between px-4">
-                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
-                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
-                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
-              </div>
-              <div className="flex justify-between">
-                <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
-                <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
-              </div>
+            <div className="grid grid-cols-7 gap-2 sm:gap-4">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-full" />
+              ))}
             </div>
           ) : (
-            <div className="flex flex-col gap-4 sm:gap-6">
-              {/* Row 1: 2 bigger gauges (Mon, Tue) - full width */}
-              <div className="flex justify-between">
-                {[t.planner.weekDays.mon, t.planner.weekDays.tue].map((day, i) => (
-                  <CircularGauge
-                    key={i}
-                    percentage={stats?.weeklyData?.[i] || 0}
-                    size={90}
-                    label={day}
-                  />
-                ))}
-              </div>
-              {/* Row 2: 3 smaller gauges (Wed, Thu, Fri) */}
-              <div className="flex justify-between px-2 sm:px-8">
-                {[t.planner.weekDays.wed, t.planner.weekDays.thu, t.planner.weekDays.fri].map((day, i) => (
-                  <CircularGauge
-                    key={i}
-                    percentage={stats?.weeklyData?.[i + 2] || 0}
-                    size={70}
-                    label={day}
-                  />
-                ))}
-              </div>
-              {/* Row 3: 2 bigger gauges (Sat, Sun) - full width */}
-              <div className="flex justify-between">
-                {[t.planner.weekDays.sat, t.planner.weekDays.sun].map((day, i) => (
-                  <CircularGauge
-                    key={i}
-                    percentage={stats?.weeklyData?.[i + 5] || 0}
-                    size={90}
-                    label={day}
-                  />
-                ))}
-              </div>
+            <div className="grid grid-cols-7 gap-2 sm:gap-4 lg:gap-6">
+              {[
+                t.planner.weekDays.mon, t.planner.weekDays.tue, t.planner.weekDays.wed,
+                t.planner.weekDays.thu, t.planner.weekDays.fri, t.planner.weekDays.sat,
+                t.planner.weekDays.sun
+              ].map((day, i) => (
+                <CircularGauge
+                  key={i}
+                  percentage={stats?.weeklyData?.[i] || 0}
+                  label={day}
+                  responsive
+                />
+              ))}
             </div>
           )}
         </Card>

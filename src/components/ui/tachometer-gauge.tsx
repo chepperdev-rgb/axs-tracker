@@ -83,6 +83,7 @@ export function TachometerGauge({
 interface CircularGaugeProps {
   percentage: number
   size?: number
+  responsive?: boolean
   label?: string
   className?: string
 }
@@ -90,23 +91,29 @@ interface CircularGaugeProps {
 export function CircularGauge({
   percentage,
   size = 80,
+  responsive = false,
   label,
   className
 }: CircularGaugeProps) {
   const value = Math.min(100, Math.max(0, percentage))
-  const strokeWidth = size * 0.12
-  const radius = (size - strokeWidth) / 2
+  // Use a fixed viewBox for responsive mode
+  const vb = responsive ? 100 : size
+  const strokeWidth = vb * 0.1
+  const radius = (vb - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (circumference * value) / 100
 
   return (
     <div className={cn('flex flex-col items-center', className)}>
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full -rotate-90">
+      <div
+        className={cn('relative', responsive && 'w-full aspect-square')}
+        style={responsive ? undefined : { width: size, height: size }}
+      >
+        <svg viewBox={`0 0 ${vb} ${vb}`} className="w-full h-full -rotate-90">
           {/* Background circle */}
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={vb / 2}
+            cy={vb / 2}
             r={radius}
             fill="none"
             stroke="#2a2a2a"
@@ -114,8 +121,8 @@ export function CircularGauge({
           />
           {/* Progress circle with gradient */}
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={vb / 2}
+            cy={vb / 2}
             r={radius}
             fill="none"
             stroke="url(#circularGoldGradient)"
@@ -139,8 +146,8 @@ export function CircularGauge({
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="font-bold text-[#d4af37] font-mono"
-            style={{ fontSize: size * 0.22 }}
+            className={cn('font-bold text-[#d4af37] font-mono', responsive && 'text-[clamp(10px,2.5vw,28px)]')}
+            style={responsive ? undefined : { fontSize: size * 0.22 }}
           >
             {Math.round(value)}%
           </span>
@@ -148,8 +155,8 @@ export function CircularGauge({
       </div>
       {label && (
         <div
-          className="text-[#a0a0a0] uppercase tracking-wider text-center mt-1"
-          style={{ fontSize: Math.max(9, size * 0.12) }}
+          className={cn('text-[#a0a0a0] uppercase tracking-wider text-center mt-1', responsive && 'text-[clamp(9px,1.2vw,14px)]')}
+          style={responsive ? undefined : { fontSize: Math.max(9, size * 0.12) }}
         >
           {label}
         </div>
