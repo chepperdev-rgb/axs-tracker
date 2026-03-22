@@ -167,20 +167,23 @@ export default function PlannerPage() {
   }
 
   const handleMoveToToday = async (taskId: string) => {
-    setProcessingUnfinished(true)
     const today = getTodayStr()
-    // Mark old task as completed=false (stays on old day as "missed")
-    // Create new task for today with same title
     const task = unfinishedTasks.find(t => t.id === taskId)
-    if (task) {
-      // Keep old task on its original day — just mark it explicitly not completed (already is)
-      // No delete — it stays as a missed task for correct stats
-      createTask({ title: task.title, date: today }, {
-        onSuccess: () => {
-          setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
-          setProcessingUnfinished(false)
-        }
+    if (!task) return
+
+    // Remove from popup immediately (optimistic)
+    setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
+
+    // Create copy on today — old task stays on its day as missed
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: task.title, date: today }),
       })
+      if (!res.ok) console.error('[move] API error:', await res.text())
+    } catch (err) {
+      console.error('[move] fetch error:', err)
     }
   }
 
@@ -189,22 +192,26 @@ export default function PlannerPage() {
     setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
   }
 
-  const handleMoveAllToToday = () => {
+  const handleMoveAllToToday = async () => {
     const today = getTodayStr()
     setProcessingUnfinished(true)
-    // Keep old tasks on their days (missed), create copies for today
-    const promises = unfinishedTasks.map(task =>
-      new Promise<void>((resolve) => {
-        createTask({ title: task.title, date: today }, {
-          onSuccess: () => resolve()
+    const tasksToMove = [...unfinishedTasks]
+    setUnfinishedTasks([])
+    setShowUnfinishedPopup(false)
+
+    // Create copies on today — old tasks stay on their days as missed
+    for (const task of tasksToMove) {
+      try {
+        await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: task.title, date: today }),
         })
-      })
-    )
-    Promise.all(promises).then(() => {
-      setUnfinishedTasks([])
-      setShowUnfinishedPopup(false)
-      setProcessingUnfinished(false)
-    })
+      } catch (err) {
+        console.error('[moveAll] error:', err)
+      }
+    }
+    setProcessingUnfinished(false)
   }
 
   const handleDeleteAllUnfinished = () => {
