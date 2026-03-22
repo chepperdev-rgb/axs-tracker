@@ -26,7 +26,31 @@ export const metadata: Metadata = {
   title: "AXS Tracker | Premium Habit Tracking",
   description: "Track your habits with style. Premium habit tracking app with dark luxury design.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "AXS Tracker | Premium Habit Tracking",
+    description: "Track your habits with style. Premium habit tracking app with dark luxury design.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AXS Tracker" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AXS Tracker | Premium Habit Tracking",
+    description: "Track your habits with style.",
+    images: ["/og-image.png"],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "AXS Tracker",
   },
 };
 
