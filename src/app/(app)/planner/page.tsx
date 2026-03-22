@@ -369,8 +369,8 @@ export default function PlannerPage() {
                             text-sm sm:text-base font-semibold uppercase
                             ${isTodayDate ? 'text-[#d4af37]' : isPastDate ? 'text-[#505050]' : 'text-[#f5f5f5]'}
                           `}>
-                            <span className="sm:hidden">{weekDaysShort[index]}</span>
-                            <span className="hidden sm:inline">{day}</span>
+                            <span className="sm:hidden">{weekDaysShort[index]} {parseInt(date.split('-')[2])}</span>
+                            <span className="hidden sm:inline">{day} {parseInt(date.split('-')[2])}</span>
                             {isTodayDate && <span className="ml-2 text-[10px] tracking-wider opacity-70">{t.planner.today}</span>}
                           </span>
                         </div>
