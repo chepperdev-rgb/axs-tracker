@@ -160,22 +160,23 @@ export default function PlannerPage() {
 
   const handleDeleteTask = (taskId: string) => deleteTask(taskId)
 
-  // Get tomorrow's date string
-  const getTomorrowStr = () => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
+  // Get today's date string (move TO today, not tomorrow)
+  const getTodayStr = () => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
 
-  const handleMoveToTomorrow = async (taskId: string) => {
+  const handleMoveToToday = async (taskId: string) => {
     setProcessingUnfinished(true)
-    const tomorrow = getTomorrowStr()
-    // Create new task for tomorrow with same title, delete old one
+    const today = getTodayStr()
+    // Mark old task as completed=false (stays on old day as "missed")
+    // Create new task for today with same title
     const task = unfinishedTasks.find(t => t.id === taskId)
     if (task) {
-      createTask({ title: task.title, date: tomorrow }, {
+      // Keep old task on its original day — just mark it explicitly not completed (already is)
+      // No delete — it stays as a missed task for correct stats
+      createTask({ title: task.title, date: today }, {
         onSuccess: () => {
-          deleteTask(taskId)
           setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
           setProcessingUnfinished(false)
         }
@@ -188,17 +189,22 @@ export default function PlannerPage() {
     setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
   }
 
-  const handleMoveAllToTomorrow = () => {
-    const tomorrow = getTomorrowStr()
+  const handleMoveAllToToday = () => {
+    const today = getTodayStr()
     setProcessingUnfinished(true)
-    unfinishedTasks.forEach(task => {
-      createTask({ title: task.title, date: tomorrow }, {
-        onSuccess: () => deleteTask(task.id)
+    // Keep old tasks on their days (missed), create copies for today
+    const promises = unfinishedTasks.map(task =>
+      new Promise<void>((resolve) => {
+        createTask({ title: task.title, date: today }, {
+          onSuccess: () => resolve()
+        })
       })
+    )
+    Promise.all(promises).then(() => {
+      setUnfinishedTasks([])
+      setShowUnfinishedPopup(false)
+      setProcessingUnfinished(false)
     })
-    setUnfinishedTasks([])
-    setShowUnfinishedPopup(false)
-    setProcessingUnfinished(false)
   }
 
   const handleDeleteAllUnfinished = () => {
@@ -757,10 +763,10 @@ export default function PlannerPage() {
                   <span className="text-sm text-[#a0a0a0] flex-1">{task.title}</span>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => handleMoveToTomorrow(task.id)}
+                      onClick={() => handleMoveToToday(task.id)}
                       disabled={processingUnfinished}
                       className="p-1.5 rounded-lg bg-[rgba(212,175,55,0.1)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.2)] transition-colors"
-                      title="Move to tomorrow"
+                      title="Move to today"
                     >
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -781,7 +787,7 @@ export default function PlannerPage() {
               <Button
                 variant="luxury"
                 className="flex-1 h-11 text-sm rounded-xl"
-                onClick={handleMoveAllToTomorrow}
+                onClick={handleMoveAllToToday}
                 disabled={processingUnfinished}
               >
                 {processingUnfinished ? (
@@ -789,7 +795,7 @@ export default function PlannerPage() {
                 ) : (
                   <>
                     <ArrowRight className="w-4 h-4 mr-1.5" />
-                    Move all
+                    Move to today
                   </>
                 )}
               </Button>
