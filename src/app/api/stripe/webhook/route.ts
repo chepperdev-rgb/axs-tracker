@@ -61,6 +61,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             stripeSubscriptionId: subId,
             subscriptionStatus: sub.status || 'trialing',
             trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+            currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
             updatedAt: new Date(),
           }).where(eq(users.id, userId))
 
@@ -82,15 +83,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
         const plan = sub.metadata?.plan || 'premium'
 
+        const currentPeriodEnd = (sub as any).current_period_end
+          ? new Date((sub as any).current_period_end * 1000)
+          : null
+
         await db.update(users).set({
           plan: sub.status === 'canceled' ? 'free' : plan,
           subscriptionStatus: sub.status,
           stripeSubscriptionId: sub.id,
           trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+          currentPeriodEnd,
           updatedAt: new Date(),
         }).where(eq(users.stripeCustomerId, customerId))
 
-        console.log(`[stripe/webhook] Subscription updated: ${customerId} → ${sub.status}`)
+        console.log(`[stripe/webhook] Subscription updated: ${customerId} → ${sub.status}, period_end=${currentPeriodEnd}`)
         break
       }
 
