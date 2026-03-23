@@ -15,10 +15,6 @@ async function stripeGet(path: string) {
   return res.json()
 }
 
-function resolvePlan(metadata: Record<string, string> | null | undefined): string {
-  return metadata?.plan || 'premium'
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   const body = await req.text()
@@ -26,21 +22,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   let event: Stripe.Event
 
-  if (!webhookSecret || webhookSecret === 'whsec_placeholder') {
-    try {
-      event = JSON.parse(body) as Stripe.Event
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-    }
-  } else {
-    try {
-      // Use raw crypto verification since SDK HTTP client may fail
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { maxNetworkRetries: 0 })
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } catch (err) {
-      console.error('[stripe/webhook] Signature verification failed:', err)
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-    }
+  if (!webhookSecret) {
+    console.error('[stripe/webhook] STRIPE_WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+  }
+
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { maxNetworkRetries: 0 })
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+  } catch (err) {
+    console.error('[stripe/webhook] Signature verification failed:', err)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
   console.log(`[stripe/webhook] Processing: ${event.type}`)
@@ -116,6 +108,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }).where(eq(users.stripeCustomerId, customerId))
 
         console.log(`[stripe/webhook] Subscription deleted: ${customerId} → free`)
+        break
+      }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+        if (!customerId) {
+          console.warn('[stripe/webhook] invoice.paid: no customerId')
+          break
+        }
+
+        // Extract current_period_end from the first line item
+        const lineItem = (invoice as any).lines?.data?.[0]
+        const periodEnd = lineItem?.period?.end
+
+        await db.update(users).set({
+          subscriptionStatus: 'active',
+          ...(periodEnd ? { currentPeriodEnd: new Date(periodEnd * 1000) } : {}),
+          updatedAt: new Date(),
+        }).where(eq(users.stripeCustomerId, customerId))
+
+        console.log(`[stripe/webhook] Invoice paid: ${customerId} → active, period_end=${periodEnd}`)
         break
       }
 

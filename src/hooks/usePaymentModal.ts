@@ -134,7 +134,7 @@ export function usePaymentModal(
   }
 }
 
-// Simpler hook for just checking status without modal controls
+// Check payment status from API (server-side source of truth)
 export function usePaymentStatus() {
   const [hasDismissed, setHasDismissed] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
@@ -145,10 +145,13 @@ export function usePaymentStatus() {
     const dismissed = localStorage.getItem(STORAGE_KEY) === "true"
     setHasDismissed(dismissed)
 
-    // In the future, this would check if user has premium subscription
-    // For now, we just check localStorage
-    const premium = localStorage.getItem("axs_is_premium") === "true"
-    setIsPremium(premium)
+    // Check plan from server
+    fetch('/api/user/plan')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.plan && data.plan !== 'free') setIsPremium(true)
+      })
+      .catch(() => {})
   }, [])
 
   return { hasDismissed, isPremium }
