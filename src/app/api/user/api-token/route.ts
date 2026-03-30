@@ -22,13 +22,20 @@ export async function GET() {
     const tokens = await db.select({
       id: apiTokens.id,
       name: apiTokens.name,
+      token: apiTokens.token,
       lastUsedAt: apiTokens.lastUsedAt,
       createdAt: apiTokens.createdAt,
     })
       .from(apiTokens)
       .where(eq(apiTokens.userId, user.id))
 
-    return NextResponse.json(tokens)
+    // Mask tokens — only show last 4 chars
+    const masked = tokens.map(t => ({
+      ...t,
+      token: `****${t.token.slice(-4)}`,
+    }))
+
+    return NextResponse.json(masked)
   } catch (error) {
     console.error('Error fetching tokens:', error)
     return NextResponse.json({ error: 'Failed to fetch tokens' }, { status: 500 })

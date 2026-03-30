@@ -1,0 +1,12 @@
+{
+  "name": "AXS Steps Sync",
+  "description": "Automatically syncs your daily steps to AXS Tracker",
+  "actions": [
+    "Get Health Samples: Step Count, Today",
+    "Get Current Date, format: YYYY-MM-DD",
+    "URL: https://axs-tracker.vercel.app/api/health/sync",
+    "Get Contents of URL (POST): { date: <formatted_date>, steps: <steps>, source: shortcuts }",
+    "Header: Authorization: Bearer USER_TOKEN_HERE"
+  ],
+  "note": "USER_TOKEN_HERE will be replaced with actual token via deep link"
+}

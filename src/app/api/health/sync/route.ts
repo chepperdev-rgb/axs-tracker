@@ -13,10 +13,13 @@ const syncSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization')
+    const queryToken = req.nextUrl.searchParams.get('user_token')
     let userId: string | null = null
 
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7)
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    const token = bearerToken || queryToken
+
+    if (token) {
       const [row] = await db.select()
         .from(apiTokens)
         .where(eq(apiTokens.token, token))

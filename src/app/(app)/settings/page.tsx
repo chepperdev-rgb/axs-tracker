@@ -10,8 +10,8 @@ import {
   Globe, Bell, Moon, Shield, Smartphone, Clock,
   Eye, Volume2, Vibrate, Download, HelpCircle,
   ChevronRight, Crown, Star, Infinity, Loader2,
-  User, Mail, Calendar, CreditCard, Footprints,
-  Copy, Trash2, Plus, Check,
+  User, Calendar, CreditCard, Footprints,
+  CheckCircle2, ExternalLink, RefreshCw,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -22,11 +22,9 @@ export default function SettingsPage() {
   const [portalLoading, setPortalLoading] = useState(false)
   const [createdAt, setCreatedAt] = useState('')
 
-  // API Token state
-  const [apiToken, setApiToken] = useState<string | null>(null)
-  const [tokenLoading, setTokenLoading] = useState(false)
-  const [tokenCopied, setTokenCopied] = useState(false)
-  const [tokenLastUsed, setTokenLastUsed] = useState<string | null>(null)
+  // Shortcuts integration state
+  const [shortcutsUrl, setShortcutsUrl] = useState<string | null>(null)
+  const [shortcutsLoading, setShortcutsLoading] = useState(false)
 
   // Notification settings (local state)
   const [dailyReminder, setDailyReminder] = useState(true)
@@ -58,64 +56,37 @@ export default function SettingsPage() {
     }
     loadUser()
 
-    // Load API token
-    const loadToken = async () => {
+    // Check if health is already connected
+    const checkHealth = async () => {
       try {
-        const res = await fetch('/api/user/api-token')
+        const res = await fetch('/api/user/shortcuts-url')
         if (res.ok) {
           const data = await res.json()
-          if (data.tokens?.length > 0) {
-            setApiToken(data.tokens[0].token)
-            setTokenLastUsed(data.tokens[0].lastUsedAt)
-          }
+          if (data.url) setShortcutsUrl(data.url)
         }
       } catch {}
     }
-    loadToken()
+    checkHealth()
   }, [])
 
-  const handleGenerateToken = async () => {
-    setTokenLoading(true)
+  const handleConnectHealth = async () => {
+    setShortcutsLoading(true)
     try {
-      const res = await fetch('/api/user/api-token', { method: 'POST' })
+      const res = await fetch('/api/user/shortcuts-url')
       if (res.ok) {
         const data = await res.json()
-        setApiToken(data.token)
-        setTokenLastUsed(null)
-        toast.success('API token generated')
+        if (data.url) {
+          window.open(data.url, '_blank')
+          setShortcutsUrl(data.url)
+        }
       } else {
-        toast.error('Failed to generate token')
+        toast.error('Failed to get Shortcut link')
       }
     } catch {
-      toast.error('Failed to generate token')
+      toast.error('Failed to connect')
     } finally {
-      setTokenLoading(false)
+      setShortcutsLoading(false)
     }
-  }
-
-  const handleRevokeToken = async () => {
-    setTokenLoading(true)
-    try {
-      const res = await fetch('/api/user/api-token', { method: 'DELETE' })
-      if (res.ok) {
-        setApiToken(null)
-        setTokenLastUsed(null)
-        toast.success('API token revoked')
-      } else {
-        toast.error('Failed to revoke token')
-      }
-    } catch {
-      toast.error('Failed to revoke token')
-    } finally {
-      setTokenLoading(false)
-    }
-  }
-
-  const handleCopyToken = async () => {
-    if (!apiToken) return
-    await navigator.clipboard.writeText(apiToken)
-    setTokenCopied(true)
-    setTimeout(() => setTokenCopied(false), 2000)
   }
 
   const handleLogout = async () => {
@@ -226,93 +197,68 @@ export default function SettingsPage() {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[#a0a0a0]">Health Integration</h3>
         </div>
         <p className="text-xs text-[#707070] mb-4">
-          Connect Apple Health via Shortcuts to automatically sync your daily steps.
+          Sync steps from iPhone Health automatically via Shortcuts.
         </p>
 
-        {/* API Token Management */}
-        <div className="space-y-3">
-          {apiToken ? (
-            <div className="space-y-3">
-              <div className="p-3 rounded-lg bg-[rgba(0,0,0,0.2)] border border-[rgba(212,175,55,0.1)]">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-[#707070] uppercase tracking-wider">API Token</span>
-                  {tokenLastUsed && (
-                    <span className="text-[10px] text-[#505050]">
-                      Last used: {new Date(tokenLastUsed).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs font-mono text-[#d4af37] truncate">
-                    {apiToken.slice(0, 8)}...{apiToken.slice(-4)}
-                  </code>
-                  <button
-                    onClick={handleCopyToken}
-                    className="p-1.5 rounded-md hover:bg-[rgba(212,175,55,0.1)] transition-colors"
-                    title="Copy token"
-                  >
-                    {tokenCopied ? (
-                      <Check className="w-3.5 h-3.5 text-green-500" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-[#707070]" />
-                    )}
-                  </button>
-                  <button
-                    onClick={handleRevokeToken}
-                    disabled={tokenLoading}
-                    className="p-1.5 rounded-md hover:bg-[rgba(231,76,60,0.1)] transition-colors"
-                    title="Revoke token"
-                  >
-                    {tokenLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#707070]" />
-                    ) : (
-                      <Trash2 className="w-3.5 h-3.5 text-[#e74c3c]/60" />
-                    )}
-                  </button>
-                </div>
+        {shortcutsUrl ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.2)]">
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-[#f5f5f5]">Connected to Apple Health</p>
+                <p className="text-xs text-[#707070]">Steps sync via Shortcuts</p>
               </div>
             </div>
-          ) : (
             <button
-              onClick={handleGenerateToken}
-              disabled={tokenLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(212,175,55,0.15)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.25)] transition-colors border border-[rgba(212,175,55,0.2)] disabled:opacity-50"
+              onClick={handleConnectHealth}
+              disabled={shortcutsLoading}
+              className="flex items-center gap-2 text-xs text-[#505050] hover:text-[#707070] transition-colors disabled:opacity-50"
             >
-              {tokenLoading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {shortcutsLoading ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
               ) : (
-                <Plus className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3 h-3" />
               )}
-              Generate API Token
+              Reconnect
             </button>
-          )}
+          </div>
+        ) : (
+          <button
+            onClick={handleConnectHealth}
+            disabled={shortcutsLoading}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-[rgba(212,175,55,0.15)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.25)] transition-colors border border-[rgba(212,175,55,0.2)] disabled:opacity-50"
+          >
+            {shortcutsLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Footprints className="w-3.5 h-3.5" />
+            )}
+            Connect Apple Health
+            <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
+          </button>
+        )}
 
-          {/* Setup Instructions */}
-          <div className="pt-3 border-t border-[rgba(212,175,55,0.1)]">
-            <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-3">Setup Apple Shortcuts</p>
-            <div className="space-y-2.5">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-[#d4af37]">1</span>
-                </div>
-                <p className="text-xs text-[#a0a0a0] pt-0.5">Generate an API token above</p>
+        {/* How it works */}
+        <div className="mt-4 pt-3 border-t border-[rgba(212,175,55,0.1)]">
+          <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-3">How it works</p>
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[#d4af37]">1</span>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-[#d4af37]">2</span>
-                </div>
-                <p className="text-xs text-[#a0a0a0] pt-0.5">
-                  Open <span className="text-[#f5f5f5]">Shortcuts</span> on your iPhone and create a new automation
-                </p>
+              <p className="text-xs text-[#a0a0a0] pt-0.5">Tap &quot;Connect Apple Health&quot;</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[#d4af37]">2</span>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-[#d4af37]">3</span>
-                </div>
-                <p className="text-xs text-[#a0a0a0] pt-0.5">
-                  Paste the token into the Authorization header of the HTTP action
-                </p>
+              <p className="text-xs text-[#a0a0a0] pt-0.5">Install the Shortcut on your iPhone</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[#d4af37]">3</span>
               </div>
+              <p className="text-xs text-[#a0a0a0] pt-0.5">Done — steps sync automatically</p>
             </div>
           </div>
         </div>
