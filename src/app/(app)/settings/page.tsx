@@ -11,7 +11,7 @@ import {
   Eye, Volume2, Vibrate, Download, HelpCircle,
   ChevronRight, Crown, Star, Infinity, Loader2,
   User, Calendar, CreditCard, Footprints,
-  CheckCircle2, ExternalLink, RefreshCw,
+  CheckCircle2, ExternalLink, RefreshCw, Copy, Check,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -25,6 +25,8 @@ export default function SettingsPage() {
   // Shortcuts integration state
   const [shortcutsUrl, setShortcutsUrl] = useState<string | null>(null)
   const [shortcutsLoading, setShortcutsLoading] = useState(false)
+  const [syncToken, setSyncToken] = useState<string | null>(null)
+  const [tokenCopied, setTokenCopied] = useState(false)
 
   // Notification settings (local state)
   const [dailyReminder, setDailyReminder] = useState(true)
@@ -59,6 +61,12 @@ export default function SettingsPage() {
     // Check if health was connected (user explicitly tapped Connect)
     const connected = localStorage.getItem('axs_health_connected')
     if (connected === '1') setShortcutsUrl('connected')
+
+    // Fetch sync token
+    fetch('/api/user/token')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.token) setSyncToken(data.token) })
+      .catch(() => {})
   }, [])
 
   const handleConnectHealth = async () => {
@@ -225,6 +233,31 @@ export default function SettingsPage() {
           </button>
         )}
 
+        {/* Sync Token */}
+        {syncToken && (
+          <div className="mt-4 pt-3 border-t border-[rgba(212,175,55,0.1)]">
+            <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-2">Your Sync Token</p>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-[rgba(0,0,0,0.3)] border border-[rgba(212,175,55,0.15)]">
+              <code className="flex-1 text-sm text-[#d4af37] font-mono select-all">{syncToken}</code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(syncToken)
+                  setTokenCopied(true)
+                  setTimeout(() => setTokenCopied(false), 2000)
+                }}
+                className="flex-shrink-0 p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+              >
+                {tokenCopied ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4 text-[#707070]" />
+                )}
+              </button>
+            </div>
+            <p className="text-[10px] text-[#505050] mt-1.5">When installing the shortcut, paste this token when prompted</p>
+          </div>
+        )}
+
         {/* How it works */}
         <div className="mt-4 pt-3 border-t border-[rgba(212,175,55,0.1)]">
           <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-3">How it works</p>
@@ -233,13 +266,13 @@ export default function SettingsPage() {
               <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
                 <span className="text-[10px] font-bold text-[#d4af37]">1</span>
               </div>
-              <p className="text-xs text-[#a0a0a0] pt-0.5">Tap &quot;Connect Apple Health&quot;</p>
+              <p className="text-xs text-[#a0a0a0] pt-0.5">Tap &quot;Connect Apple Health&quot; to download the Shortcut</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
                 <span className="text-[10px] font-bold text-[#d4af37]">2</span>
               </div>
-              <p className="text-xs text-[#a0a0a0] pt-0.5">Install the Shortcut on your iPhone</p>
+              <p className="text-xs text-[#a0a0a0] pt-0.5">Install the Shortcut — paste your sync token when prompted</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
