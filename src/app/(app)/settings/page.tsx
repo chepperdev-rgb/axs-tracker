@@ -66,8 +66,11 @@ export default function SettingsPage() {
   const handleConnectHealth = async () => {
     setShortcutsLoading(true)
     try {
-      // Download .shortcut file with token baked in — iOS Safari triggers install
-      window.open('/api/shortcuts/download', '_blank')
+      const res = await fetch('/api/shortcuts/download')
+      if (!res.ok) throw new Error('Failed to get shortcut URL')
+      const { url } = await res.json()
+      // Open Shortcuts app directly on iOS via URL scheme
+      window.location.href = `shortcuts://import-workflow?url=${encodeURIComponent(url)}&name=${encodeURIComponent('AXS Health Sync')}`
     } catch {
       toast.error('Failed to download shortcut')
     } finally {

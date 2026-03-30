@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { db } from '@/db'
 import { apiTokens } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -7,7 +8,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
-// GET /api/shortcuts/download — serves the signed .shortcut with token baked in
+// GET /api/shortcuts/download — uploads personalized .shortcut to storage, returns public URL
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient()
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
     }
 
     const filePath = path.join(process.cwd(), 'public', 'axs-health-sync-template.shortcut')
-    let fileBuffer = fs.readFileSync(filePath)
+    const fileBuffer = Buffer.from(fs.readFileSync(filePath))
 
     // Bake token into shortcut: replace placeholder "AXS_TOKEN_PLACEHOLDER" with real token
     const placeholder = Buffer.from('AXS_TOKEN_PLACEHOLDER')
@@ -44,14 +45,37 @@ export async function GET(req: NextRequest) {
       replacement.copy(fileBuffer, idx)
     }
 
-    return new NextResponse(fileBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="AXS Health Sync.shortcut"',
-        'Cache-Control': 'no-store',
-      },
-    })
+    // Upload to Supabase Storage (public bucket) using service role
+    const admin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+
+    // Ensure bucket exists (idempotent — ignored if already created)
+    await admin.storage.createBucket('shortcuts', { public: true }).catch(() => {})
+
+    const storagePath = `${user.id}.shortcut`
+
+    const { error: uploadError } = await admin.storage
+      .from('shortcuts')
+      .upload(storagePath, fileBuffer, {
+        contentType: 'application/octet-stream',
+        upsert: true,
+      })
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError)
+      return NextResponse.json({ error: 'Failed to upload shortcut' }, { status: 500 })
+    }
+
+    const { data: urlData } = admin.storage
+      .from('shortcuts')
+      .getPublicUrl(storagePath)
+
+    // Append cache-buster so iOS always fetches fresh version
+    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`
+
+    return NextResponse.json({ url: publicUrl })
   } catch (error) {
     console.error('Error serving shortcut:', error)
     return NextResponse.json({ error: 'Failed to serve shortcut' }, { status: 500 })
