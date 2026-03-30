@@ -8,6 +8,13 @@
       "when": 1773341875222,
       "tag": "0000_sudden_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774911529208,
+      "tag": "0001_panoramic_iceman",
+      "breakpoints": true
     }
   ]
 }
