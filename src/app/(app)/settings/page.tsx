@@ -72,16 +72,9 @@ export default function SettingsPage() {
   const handleConnectHealth = async () => {
     setShortcutsLoading(true)
     try {
-      const res = await fetch('/api/user/shortcuts-url')
-      if (res.ok) {
-        const data = await res.json()
-        if (data.url) {
-          window.open(data.url, '_blank')
-          setShortcutsUrl(data.url)
-        }
-      } else {
-        toast.error('Failed to get Shortcut link')
-      }
+      // Direct download — token is baked inside the .shortcut file
+      window.location.href = '/api/shortcuts/download'
+      setShortcutsUrl('connected')
     } catch {
       toast.error('Failed to connect')
     } finally {
