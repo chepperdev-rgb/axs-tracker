@@ -5,6 +5,7 @@ import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { useEffect, useState } from 'react'
 import { useTranslations, useI18n } from '@/providers/i18n-provider'
 import { TachometerGauge, CircularGauge } from '@/components/ui/tachometer-gauge'
+import { StepsWidget } from '@/components/dashboard/steps-widget'
 
 function Skeleton({ className }: { className?: string }) {
   return (
@@ -207,6 +208,7 @@ export default function DashboardPage() {
   const t = useTranslations()
   const { locale } = useI18n()
   const currentMonth = new Date().toLocaleDateString(locale, { month: 'long', year: 'numeric' })
+  const todayDate = new Date().toISOString().split('T')[0]
   const { data: stats, isLoading, error } = useDashboardStats()
 
   if (error) {
@@ -345,6 +347,11 @@ export default function DashboardPage() {
             </div>
           )}
         </Card>
+      </div>
+
+      {/* Steps Widget */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <StepsWidget date={todayDate} />
       </div>
 
       {/* Charts Section */}

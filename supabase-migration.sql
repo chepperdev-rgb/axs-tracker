@@ -124,3 +124,37 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS rollover_processed_at timestamptz;
 
 -- Index for faster queries on unprocessed tasks
 CREATE INDEX IF NOT EXISTS tasks_status_idx ON tasks(status);
+
+-- ═══════════════════════════════════════════════════
+-- Migration: Health metrics + API tokens for Steps Widget
+-- ═══════════════════════════════════════════════════
+
+-- Health metrics table
+CREATE TABLE IF NOT EXISTS health_metrics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  steps INTEGER,
+  source TEXT NOT NULL DEFAULT 'manual',
+  synced_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT health_metrics_user_date_unique UNIQUE (user_id, date)
+);
+CREATE INDEX IF NOT EXISTS health_metrics_user_idx ON health_metrics(user_id);
+CREATE INDEX IF NOT EXISTS health_metrics_date_idx ON health_metrics(date);
+ALTER TABLE health_metrics ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own health metrics" ON health_metrics FOR ALL USING (user_id = auth.uid());
+
+-- API tokens table
+CREATE TABLE IF NOT EXISTS api_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL DEFAULT 'default',
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS api_tokens_token_idx ON api_tokens(token);
+CREATE INDEX IF NOT EXISTS api_tokens_user_idx ON api_tokens(user_id);
+ALTER TABLE api_tokens ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own tokens" ON api_tokens FOR ALL USING (user_id = auth.uid());
