@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Task } from '@/db/schema'
 
 interface CreateTaskInput {
@@ -67,6 +68,8 @@ export function useTasks(weekStart: string) {
     queryKey,
     queryFn: () => fetchTasks(weekStart),
     enabled: !!weekStart,
+    staleTime: 2 * 60 * 1000,  // don't refetch for 2 min
+    gcTime: 10 * 60 * 1000,    // keep in cache 10 min
   })
 
   const createMutation = useMutation({
@@ -103,6 +106,7 @@ export function useTasks(weekStart: string) {
       if (context?.previousTasks) {
         queryClient.setQueryData(queryKey, context.previousTasks)
       }
+      toast.error('Failed to save task. Please try again.')
     },
     onSettled: () => {
       // Refetch after mutation

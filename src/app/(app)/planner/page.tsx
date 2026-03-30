@@ -25,6 +25,7 @@ export default function PlannerPage() {
   const [addingTaskForDay, setAddingTaskForDay] = useState<number | null>(null)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const escapePressedRef = useRef(false)
+  const enterPressedRef = useRef(false)
   const [dayPopup, setDayPopup] = useState<{ date: string; dayName: string } | null>(null)
   const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set())
   const [editingTask, setEditingTask] = useState<{ id: string; title: string } | null>(null)
@@ -144,8 +145,10 @@ export default function PlannerPage() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, dayIndex: number) => {
-    if (e.key === 'Enter') handleCreateTask(dayIndex)
-    else if (e.key === 'Escape') {
+    if (e.key === 'Enter') {
+      enterPressedRef.current = true
+      handleCreateTask(dayIndex)
+    } else if (e.key === 'Escape') {
       escapePressedRef.current = true
       setAddingTaskForDay(null)
       setNewTaskTitle('')
@@ -154,6 +157,7 @@ export default function PlannerPage() {
 
   const handleBlur = (dayIndex: number) => {
     if (escapePressedRef.current) { escapePressedRef.current = false; return }
+    if (enterPressedRef.current) { enterPressedRef.current = false; return }
     handleCreateTask(dayIndex)
   }
 
