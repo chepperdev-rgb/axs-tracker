@@ -172,13 +172,15 @@ export default function PlannerPage() {
   }
 
   const handlePostponeTask = async (taskId: string) => {
-    const today = getTodayStr()
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
     setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
     try {
       const res = await fetch('/api/tasks/rollover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId, action: 'postpone', tomorrowDate: today }),
+        body: JSON.stringify({ taskId, action: 'postpone', tomorrowDate: tomorrowStr }),
       })
       if (!res.ok) console.error('[postpone] API error:', await res.text())
     } catch (err) {
@@ -448,24 +450,54 @@ export default function PlannerPage() {
                       ) : (
                         dayTasks.map((task) => {
                           if (isPastDate) {
+                            const isCancelled = task.status === 'cancelled'
+                            const isRolledOver = task.status === 'rolled_over'
+                            const isCompleted = task.completed
+
                             return (
                               <div key={task.id} className="flex items-start gap-2 p-2 rounded-lg">
                                 <div
                                   className={`mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                    task.completed
+                                    isCompleted
                                       ? 'border-[#d4af37]/30 bg-[#d4af37]/15'
+                                      : isCancelled
+                                      ? 'border-[#e05050]/30 bg-[rgba(255,80,80,0.08)]'
+                                      : isRolledOver
+                                      ? 'border-[#505050]/50 bg-[#1c1c1c]'
                                       : 'border-[#3a3a3a] bg-[#1c1c1c]'
                                   }`}
                                 >
-                                  {task.completed ? (
+                                  {isCompleted ? (
                                     <Check className="w-3 h-3 text-[#d4af37]/50" />
+                                  ) : isCancelled ? (
+                                    <XIcon className="w-3 h-3 text-[#e05050]/60" />
+                                  ) : isRolledOver ? (
+                                    <ArrowRight className="w-3 h-3 text-[#505050]" />
                                   ) : (
                                     <XIcon className="w-3 h-3 text-[#505050]" />
                                   )}
                                 </div>
-                                <span className="text-xs sm:text-sm leading-relaxed flex-1 text-[#505050] line-through">
-                                  {task.title}
-                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <span className={`text-xs sm:text-sm leading-relaxed ${
+                                    isCompleted
+                                      ? 'text-[#505050] line-through'
+                                      : isCancelled
+                                      ? 'text-[#404040] line-through italic'
+                                      : isRolledOver
+                                      ? 'text-[#404040]'
+                                      : 'text-[#505050] line-through'
+                                  }`}>
+                                    {task.title}
+                                  </span>
+                                  {isCancelled && (
+                                    <span className="block text-[9px] text-[#e05050]/50 mt-0.5">аннулирована</span>
+                                  )}
+                                  {isRolledOver && (
+                                    <span className="block text-[9px] text-[#505050] mt-0.5 flex items-center gap-0.5">
+                                      перенесена <ArrowRight className="w-2.5 h-2.5 inline" />
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             )
                           }

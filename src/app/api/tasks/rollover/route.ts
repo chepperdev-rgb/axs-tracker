@@ -3,7 +3,7 @@ import { db } from '@/db'
 import { tasks } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
 import { hasPaidPlan } from '@/lib/check-plan'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 
 const rolloverSchema = z.object({
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
       )
 
       // Atomic transaction: mark old as rolled_over + create new task
+      // The isNull guard inside the transaction prevents TOCTOU race conditions
       const result = await db.transaction(async (tx) => {
         const [updatedTask] = await tx
           .update(tasks)
@@ -77,8 +78,12 @@ export async function POST(request: NextRequest) {
             status: 'rolled_over',
             rolloverProcessedAt: now,
           })
-          .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
+          .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id), isNull(tasks.rolloverProcessedAt)))
           .returning()
+
+        if (!updatedTask) {
+          throw new Error('Task already processed (concurrent request)')
+        }
 
         const [newTask] = await tx
           .insert(tasks)
@@ -107,8 +112,12 @@ export async function POST(request: NextRequest) {
           status: 'cancelled',
           rolloverProcessedAt: now,
         })
-        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
+        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id), isNull(tasks.rolloverProcessedAt)))
         .returning()
+
+      if (!updatedTask) {
+        return NextResponse.json({ error: 'Task already processed' }, { status: 409 })
+      }
 
       return NextResponse.json(updatedTask)
     }
@@ -121,14 +130,21 @@ export async function POST(request: NextRequest) {
           status: 'completed',
           rolloverProcessedAt: now,
         })
-        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
+        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id), isNull(tasks.rolloverProcessedAt)))
         .returning()
+
+      if (!updatedTask) {
+        return NextResponse.json({ error: 'Task already processed' }, { status: 409 })
+      }
 
       return NextResponse.json(updatedTask)
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
+    if (error instanceof Error && error.message.includes('already processed')) {
+      return NextResponse.json({ error: 'Task already processed' }, { status: 409 })
+    }
     console.error('Error processing rollover:', error)
     return NextResponse.json({ error: 'Failed to process rollover' }, { status: 500 })
   }
