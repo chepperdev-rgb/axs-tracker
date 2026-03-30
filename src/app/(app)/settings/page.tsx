@@ -56,24 +56,18 @@ export default function SettingsPage() {
     }
     loadUser()
 
-    // Check if health is already connected
-    const checkHealth = async () => {
-      try {
-        const res = await fetch('/api/user/shortcuts-url')
-        if (res.ok) {
-          const data = await res.json()
-          if (data.url) setShortcutsUrl(data.url)
-        }
-      } catch {}
-    }
-    checkHealth()
+    // Check if health was connected (user explicitly tapped Connect)
+    const connected = localStorage.getItem('axs_health_connected')
+    if (connected === '1') setShortcutsUrl('connected')
   }, [])
 
   const handleConnectHealth = async () => {
     setShortcutsLoading(true)
     try {
-      // Direct download — token is baked inside the .shortcut file
-      window.location.href = '/api/shortcuts/download'
+      // Download .shortcut file with token baked in — open in new tab so iOS Safari triggers install
+      window.open('/api/shortcuts/download', '_blank')
+      // Mark as connected only after user taps button
+      localStorage.setItem('axs_health_connected', '1')
       setShortcutsUrl('connected')
     } catch {
       toast.error('Failed to connect')
