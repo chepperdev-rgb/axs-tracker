@@ -28,8 +28,8 @@ export async function GET() {
     if (existing) {
       token = existing.token
     } else {
-      // Auto-create token for shortcuts
-      token = crypto.randomUUID()
+      // Auto-create short token for shortcuts (axs-XXXXXXXX)
+      token = `axs-${crypto.randomBytes(4).toString('hex')}`
       await db.insert(apiTokens).values({
         userId: user.id,
         token,
