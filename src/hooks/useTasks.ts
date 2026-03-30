@@ -88,6 +88,9 @@ export function useTasks(weekStart: string) {
           type: newTask.type || 'daily',
           completed: false,
           sortOrder: 0,
+          status: 'active',
+          parentTaskId: null,
+          rolloverProcessedAt: null,
           createdAt: new Date(),
         }
         queryClient.setQueryData<Task[]>(queryKey, [...previousTasks, optimisticTask])

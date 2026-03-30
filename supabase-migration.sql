@@ -108,3 +108,19 @@ CREATE POLICY "Users can view their own tasks" ON tasks FOR SELECT USING (user_i
 CREATE POLICY "Users can insert their own tasks" ON tasks FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users can update their own tasks" ON tasks FOR UPDATE USING (user_id = auth.uid());
 CREATE POLICY "Users can delete their own tasks" ON tasks FOR DELETE USING (user_id = auth.uid());
+
+-- ═══════════════════════════════════════════════════
+-- Migration: Add rollover mechanics to tasks table
+-- ═══════════════════════════════════════════════════
+
+-- Add status column (active | completed | cancelled | rolled_over)
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active';
+
+-- Add parent_task_id for tracking rollover chain
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS parent_task_id uuid REFERENCES tasks(id) ON DELETE SET NULL;
+
+-- Add rollover_processed_at timestamp
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS rollover_processed_at timestamptz;
+
+-- Index for faster queries on unprocessed tasks
+CREATE INDEX IF NOT EXISTS tasks_status_idx ON tasks(status);

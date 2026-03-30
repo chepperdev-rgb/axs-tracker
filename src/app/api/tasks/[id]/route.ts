@@ -11,6 +11,8 @@ const updateTaskSchema = z.object({
   title: z.string().min(1).optional(),
   completed: z.boolean().optional(),
   sortOrder: z.number().optional(),
+  status: z.enum(['active', 'completed', 'cancelled', 'rolled_over']).optional(),
+  rolloverProcessedAt: z.string().datetime().optional(),
 })
 
 export async function PATCH(
@@ -49,9 +51,15 @@ export async function PATCH(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
 
+    const { rolloverProcessedAt, ...rest } = validation.data
+    const setData = {
+      ...rest,
+      ...(rolloverProcessedAt ? { rolloverProcessedAt: new Date(rolloverProcessedAt) } : {}),
+    }
+
     const [updatedTask] = await db
       .update(tasks)
-      .set(validation.data)
+      .set(setData)
       .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
       .returning()
 

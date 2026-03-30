@@ -9,6 +9,9 @@ export const tasks = pgTable('tasks', {
   date: date('date').notNull(),
   completed: boolean('completed').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
+  status: text('status').notNull().default('active'),
+  parentTaskId: uuid('parent_task_id'),
+  rolloverProcessedAt: timestamp('rollover_processed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   dateIdx: index('tasks_date_idx').on(table.date),

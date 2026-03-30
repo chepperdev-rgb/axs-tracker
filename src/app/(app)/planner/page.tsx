@@ -56,7 +56,12 @@ export default function PlannerPage() {
 
     const pastIncomplete = tasks.filter(task => {
       const taskDate = typeof task.date === 'string' ? task.date : task.date
-      return taskDate < todayStr && !task.completed
+      return (
+        taskDate < todayStr &&
+        !task.completed &&
+        (task.status === 'active' || !task.status) &&
+        !task.rolloverProcessedAt
+      )
     })
 
     if (pastIncomplete.length > 0) {
@@ -160,36 +165,53 @@ export default function PlannerPage() {
 
   const handleDeleteTask = (taskId: string) => deleteTask(taskId)
 
-  // Get today's date string (move TO today, not tomorrow)
+  // Get today's date string
   const getTodayStr = () => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
 
-  const handleMoveToToday = async (taskId: string) => {
+  const handlePostponeTask = async (taskId: string) => {
     const today = getTodayStr()
-    const task = unfinishedTasks.find(t => t.id === taskId)
-    if (!task) return
-
-    // Remove from popup immediately (optimistic)
     setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
-
-    // Create copy on today — old task stays on its day as missed
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await fetch('/api/tasks/rollover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: task.title, date: today }),
+        body: JSON.stringify({ taskId, action: 'postpone', tomorrowDate: today }),
       })
-      if (!res.ok) console.error('[move] API error:', await res.text())
+      if (!res.ok) console.error('[postpone] API error:', await res.text())
     } catch (err) {
-      console.error('[move] fetch error:', err)
+      console.error('[postpone] fetch error:', err)
     }
   }
 
-  const handleDeleteUnfinished = (taskId: string) => {
-    deleteTask(taskId)
+  const handleCancelTask = async (taskId: string) => {
     setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
+    try {
+      const res = await fetch('/api/tasks/rollover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, action: 'cancel' }),
+      })
+      if (!res.ok) console.error('[cancel] API error:', await res.text())
+    } catch (err) {
+      console.error('[cancel] fetch error:', err)
+    }
+  }
+
+  const handleCompleteTask = async (taskId: string) => {
+    setUnfinishedTasks(prev => prev.filter(t => t.id !== taskId))
+    try {
+      const res = await fetch('/api/tasks/rollover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, action: 'complete' }),
+      })
+      if (!res.ok) console.error('[complete] API error:', await res.text())
+    } catch (err) {
+      console.error('[complete] fetch error:', err)
+    }
   }
 
   const handleMoveAllToToday = async () => {
@@ -199,13 +221,12 @@ export default function PlannerPage() {
     setUnfinishedTasks([])
     setShowUnfinishedPopup(false)
 
-    // Create copies on today — old tasks stay on their days as missed
     for (const task of tasksToMove) {
       try {
-        await fetch('/api/tasks', {
+        await fetch('/api/tasks/rollover', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: task.title, date: today }),
+          body: JSON.stringify({ taskId: task.id, action: 'postpone', tomorrowDate: today }),
         })
       } catch (err) {
         console.error('[moveAll] error:', err)
@@ -214,10 +235,22 @@ export default function PlannerPage() {
     setProcessingUnfinished(false)
   }
 
-  const handleDeleteAllUnfinished = () => {
-    unfinishedTasks.forEach(task => deleteTask(task.id))
+  const handleDeleteAllUnfinished = async () => {
+    const tasksToCancel = [...unfinishedTasks]
     setUnfinishedTasks([])
     setShowUnfinishedPopup(false)
+
+    for (const task of tasksToCancel) {
+      try {
+        await fetch('/api/tasks/rollover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId: task.id, action: 'cancel' }),
+        })
+      } catch (err) {
+        console.error('[cancelAll] error:', err)
+      }
+    }
   }
 
   const handleEditTask = (task: Task) => {
@@ -749,72 +782,55 @@ export default function PlannerPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-[#f5f5f5]">
-                    {unfinishedTasks.length} {t.common.tasks} not done
+                    Незавершённые задачи ({unfinishedTasks.length})
                   </h3>
-                  <p className="text-xs text-[#707070] mt-0.5">Move to tomorrow or delete?</p>
+                  <p className="text-xs text-[#707070] mt-0.5">Выберите действие для каждой задачи</p>
                 </div>
               </div>
             </div>
 
             {/* Task list */}
-            <div className="p-4 max-h-[300px] overflow-y-auto space-y-2">
+            <div className="p-4 max-h-[60vh] overflow-y-auto space-y-2">
               {unfinishedTasks.map((task, i) => (
                 <div
                   key={task.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(212,175,55,0.1)] bg-[rgba(0,0,0,0.2)]"
+                  className="p-3 rounded-xl border border-[rgba(212,175,55,0.1)] bg-[rgba(0,0,0,0.2)]"
                   style={{ animation: `popupItemFade 0.3s ease-out ${i * 0.05}s both` }}
                 >
-                  <div className="w-5 h-5 rounded-full border-2 border-[#3a3a3a] bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
-                    <XIcon className="w-3 h-3 text-[#505050]" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-[#3a3a3a] bg-[#1c1c1c] flex items-center justify-center flex-shrink-0">
+                      <XIcon className="w-3 h-3 text-[#505050]" />
+                    </div>
+                    <span className="text-sm text-[#a0a0a0] flex-1">{task.title}</span>
                   </div>
-                  <span className="text-sm text-[#a0a0a0] flex-1">{task.title}</span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex gap-1.5 mt-2">
                     <button
-                      onClick={() => handleMoveToToday(task.id)}
+                      onClick={() => handlePostponeTask(task.id)}
                       disabled={processingUnfinished}
-                      className="p-1.5 rounded-lg bg-[rgba(212,175,55,0.1)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.2)] transition-colors"
-                      title="Move to today"
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[10px] font-medium bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.3)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.2)] transition-colors"
                     >
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3 h-3" />
+                      Перенести
                     </button>
                     <button
-                      onClick={() => handleDeleteUnfinished(task.id)}
-                      className="p-1.5 rounded-lg bg-[rgba(231,76,60,0.1)] text-[#e74c3c] hover:bg-[rgba(231,76,60,0.2)] transition-colors"
-                      title="Delete"
+                      onClick={() => handleCancelTask(task.id)}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[10px] font-medium bg-[rgba(255,80,80,0.08)] border border-[rgba(255,80,80,0.2)] text-[#e05050] hover:bg-[rgba(255,80,80,0.15)] transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <XIcon className="w-3 h-3" />
+                      Аннул.
+                    </button>
+                    <button
+                      onClick={() => handleCompleteTask(task.id)}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[10px] font-medium bg-[rgba(80,200,120,0.08)] border border-[rgba(80,200,120,0.2)] text-[#50c878] hover:bg-[rgba(80,200,120,0.15)] transition-colors"
+                    >
+                      <Check className="w-3 h-3" />
+                      Готово
                     </button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Bulk actions */}
-            <div className="p-4 border-t border-[rgba(212,175,55,0.1)] flex gap-3">
-              <Button
-                variant="luxury"
-                className="flex-1 h-11 text-sm rounded-xl"
-                onClick={handleMoveAllToToday}
-                disabled={processingUnfinished}
-              >
-                {processingUnfinished ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <ArrowRight className="w-4 h-4 mr-1.5" />
-                    Move to today
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                className="flex-1 h-11 text-sm rounded-xl text-[#e74c3c] hover:bg-[rgba(231,76,60,0.1)]"
-                onClick={handleDeleteAllUnfinished}
-              >
-                <Trash2 className="w-4 h-4 mr-1.5" />
-                Delete all
-              </Button>
-            </div>
           </div>
         </div>
       )}
