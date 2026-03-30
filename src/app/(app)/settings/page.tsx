@@ -11,7 +11,7 @@ import {
   Eye, Volume2, Vibrate, Download, HelpCircle,
   ChevronRight, Crown, Star, Infinity, Loader2,
   User, Calendar, CreditCard, Footprints,
-  CheckCircle2, ExternalLink, RefreshCw, Copy, Check,
+  CheckCircle2, ExternalLink, RefreshCw,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -23,10 +23,8 @@ export default function SettingsPage() {
   const [createdAt, setCreatedAt] = useState('')
 
   // Shortcuts integration state
-  const [shortcutsUrl, setShortcutsUrl] = useState<string | null>(null)
+  const [healthConnected, setHealthConnected] = useState(false)
   const [shortcutsLoading, setShortcutsLoading] = useState(false)
-  const [syncToken, setSyncToken] = useState<string | null>(null)
-  const [tokenCopied, setTokenCopied] = useState(false)
 
   // Notification settings (local state)
   const [dailyReminder, setDailyReminder] = useState(true)
@@ -58,27 +56,20 @@ export default function SettingsPage() {
     }
     loadUser()
 
-    // Check if health was connected (user explicitly tapped Connect)
-    const connected = localStorage.getItem('axs_health_connected')
-    if (connected === '1') setShortcutsUrl('connected')
-
-    // Fetch sync token
-    fetch('/api/user/token')
+    // Check if health is connected — look for real synced data
+    fetch('/api/health/status')
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.token) setSyncToken(data.token) })
+      .then(data => { if (data?.connected) setHealthConnected(true) })
       .catch(() => {})
   }, [])
 
   const handleConnectHealth = async () => {
     setShortcutsLoading(true)
     try {
-      // Download .shortcut file with token baked in — open in new tab so iOS Safari triggers install
+      // Download .shortcut file with token baked in — iOS Safari triggers install
       window.open('/api/shortcuts/download', '_blank')
-      // Mark as connected only after user taps button
-      localStorage.setItem('axs_health_connected', '1')
-      setShortcutsUrl('connected')
     } catch {
-      toast.error('Failed to connect')
+      toast.error('Failed to download shortcut')
     } finally {
       setShortcutsLoading(false)
     }
@@ -195,7 +186,7 @@ export default function SettingsPage() {
           Sync steps from iPhone Health automatically via Shortcuts.
         </p>
 
-        {shortcutsUrl ? (
+        {healthConnected ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.2)]">
               <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -214,74 +205,40 @@ export default function SettingsPage() {
               ) : (
                 <RefreshCw className="w-3 h-3" />
               )}
-              Reconnect
+              Reinstall Shortcut
             </button>
           </div>
         ) : (
-          <button
-            onClick={handleConnectHealth}
-            disabled={shortcutsLoading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-[rgba(212,175,55,0.15)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.25)] transition-colors border border-[rgba(212,175,55,0.2)] disabled:opacity-50"
-          >
-            {shortcutsLoading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Footprints className="w-3.5 h-3.5" />
-            )}
-            Connect Apple Health
-            <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
-          </button>
-        )}
-
-        {/* Sync Token */}
-        {syncToken && (
-          <div className="mt-4 pt-3 border-t border-[rgba(212,175,55,0.1)]">
-            <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-2">Your Sync Token</p>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-[rgba(0,0,0,0.3)] border border-[rgba(212,175,55,0.15)]">
-              <code className="flex-1 text-sm text-[#d4af37] font-mono select-all">{syncToken}</code>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(syncToken)
-                  setTokenCopied(true)
-                  setTimeout(() => setTokenCopied(false), 2000)
-                }}
-                className="flex-shrink-0 p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.05)] transition-colors"
-              >
-                {tokenCopied ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4 text-[#707070]" />
-                )}
-              </button>
+          <div className="space-y-3">
+            <button
+              onClick={handleConnectHealth}
+              disabled={shortcutsLoading}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-[rgba(212,175,55,0.15)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.25)] transition-colors border border-[rgba(212,175,55,0.2)] disabled:opacity-50"
+            >
+              {shortcutsLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Footprints className="w-3.5 h-3.5" />
+              )}
+              Connect Apple Health
+              <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
+            </button>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center text-[9px] font-bold text-[#d4af37]">1</span>
+                <p className="text-xs text-[#707070] pt-0.5">Tap the button above to download the Shortcut</p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center text-[9px] font-bold text-[#d4af37]">2</span>
+                <p className="text-xs text-[#707070] pt-0.5">Install it in the Shortcuts app</p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center text-[9px] font-bold text-[#d4af37]">3</span>
+                <p className="text-xs text-[#707070] pt-0.5">Run it once — steps sync automatically from now on</p>
+              </div>
             </div>
-            <p className="text-[10px] text-[#505050] mt-1.5">When installing the shortcut, paste this token when prompted</p>
           </div>
         )}
-
-        {/* How it works */}
-        <div className="mt-4 pt-3 border-t border-[rgba(212,175,55,0.1)]">
-          <p className="text-[10px] text-[#707070] uppercase tracking-wider mb-3">How it works</p>
-          <div className="space-y-2.5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#d4af37]">1</span>
-              </div>
-              <p className="text-xs text-[#a0a0a0] pt-0.5">Tap &quot;Connect Apple Health&quot; to download the Shortcut</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#d4af37]">2</span>
-              </div>
-              <p className="text-xs text-[#a0a0a0] pt-0.5">Install the Shortcut — paste your sync token when prompted</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[rgba(212,175,55,0.15)] flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#d4af37]">3</span>
-              </div>
-              <p className="text-xs text-[#a0a0a0] pt-0.5">Done — steps sync automatically</p>
-            </div>
-          </div>
-        </div>
       </Card>
 
       {/* Language */}
