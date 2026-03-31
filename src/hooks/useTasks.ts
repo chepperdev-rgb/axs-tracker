@@ -13,6 +13,7 @@ interface UpdateTaskInput {
   title?: string
   completed?: boolean
   sortOrder?: number
+  status?: string
 }
 
 async function fetchTasks(weekStart: string): Promise<Task[]> {

@@ -15,6 +15,7 @@ import {
   isFuture,
 } from '@/hooks/useTasks'
 import { Task } from '@/db/schema'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from '@/providers/i18n-provider'
 
 export default function PlannerPage() {
@@ -38,6 +39,7 @@ export default function PlannerPage() {
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, isCreating } =
     useTasks(weekStart)
+  const queryClient = useQueryClient()
 
   // Auto-scroll to today on mount
   useEffect(() => {
@@ -164,7 +166,8 @@ export default function PlannerPage() {
   const handleToggleComplete = (task: Task) => {
     const taskDate = typeof task.date === 'string' ? task.date : task.date
     if (!isToday(taskDate)) return
-    updateTask({ id: task.id, completed: !task.completed })
+    const newCompleted = !task.completed
+    updateTask({ id: task.id, completed: newCompleted, status: newCompleted ? 'completed' : 'active' })
   }
 
   const handleDeleteTask = (taskId: string) => deleteTask(taskId)
@@ -187,6 +190,7 @@ export default function PlannerPage() {
         body: JSON.stringify({ taskId, action: 'postpone', tomorrowDate: tomorrowStr }),
       })
       if (!res.ok) console.error('[postpone] API error:', await res.text())
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     } catch (err) {
       console.error('[postpone] fetch error:', err)
     }
@@ -201,6 +205,7 @@ export default function PlannerPage() {
         body: JSON.stringify({ taskId, action: 'cancel' }),
       })
       if (!res.ok) console.error('[cancel] API error:', await res.text())
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     } catch (err) {
       console.error('[cancel] fetch error:', err)
     }
@@ -215,6 +220,7 @@ export default function PlannerPage() {
         body: JSON.stringify({ taskId, action: 'complete' }),
       })
       if (!res.ok) console.error('[complete] API error:', await res.text())
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     } catch (err) {
       console.error('[complete] fetch error:', err)
     }
@@ -227,17 +233,14 @@ export default function PlannerPage() {
     setUnfinishedTasks([])
     setShowUnfinishedPopup(false)
 
-    for (const task of tasksToMove) {
-      try {
-        await fetch('/api/tasks/rollover', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: task.id, action: 'postpone', tomorrowDate: today }),
-        })
-      } catch (err) {
-        console.error('[moveAll] error:', err)
-      }
-    }
+    await Promise.all(tasksToMove.map(task =>
+      fetch('/api/tasks/rollover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id, action: 'postpone', tomorrowDate: today }),
+      }).catch(err => console.error('[moveAll] error:', err))
+    ))
+    queryClient.invalidateQueries({ queryKey: ['tasks'] })
     setProcessingUnfinished(false)
   }
 
@@ -246,17 +249,14 @@ export default function PlannerPage() {
     setUnfinishedTasks([])
     setShowUnfinishedPopup(false)
 
-    for (const task of tasksToCancel) {
-      try {
-        await fetch('/api/tasks/rollover', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: task.id, action: 'cancel' }),
-        })
-      } catch (err) {
-        console.error('[cancelAll] error:', err)
-      }
-    }
+    await Promise.all(tasksToCancel.map(task =>
+      fetch('/api/tasks/rollover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id, action: 'cancel' }),
+      }).catch(err => console.error('[cancelAll] error:', err))
+    ))
+    queryClient.invalidateQueries({ queryKey: ['tasks'] })
   }
 
   const handleEditTask = (task: Task) => {
@@ -865,6 +865,26 @@ export default function PlannerPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Bulk actions */}
+            <div className="p-4 border-t border-[rgba(231,76,60,0.15)] flex gap-2">
+              <button
+                onClick={handleMoveAllToToday}
+                disabled={processingUnfinished}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-medium bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.3)] text-[#d4af37] hover:bg-[rgba(212,175,55,0.2)] transition-colors"
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
+                Перенести все
+              </button>
+              <button
+                onClick={handleDeleteAllUnfinished}
+                disabled={processingUnfinished}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-medium bg-[rgba(255,80,80,0.08)] border border-[rgba(255,80,80,0.2)] text-[#e05050] hover:bg-[rgba(255,80,80,0.15)] transition-colors"
+              >
+                <XIcon className="w-3.5 h-3.5" />
+                Аннулировать все
+              </button>
             </div>
 
           </div>

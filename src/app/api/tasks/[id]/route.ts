@@ -11,6 +11,7 @@ const updateTaskSchema = z.object({
   title: z.string().min(1).optional(),
   completed: z.boolean().optional(),
   sortOrder: z.number().optional(),
+  status: z.string().optional(),
 })
 
 export async function PATCH(
